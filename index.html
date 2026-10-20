@@ -2,64 +2,101 @@
 <html lang="da">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="description" content="Bestyrelsens opgaver i Aalborg Volley – hvem har hvad, og hvornår er deadline.">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101216" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bestyrelsen">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="ikoner/ikon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="ikoner/apple-touch-icon.png">
 <title>Bestyrelsens opgaver · Aalborg Volley</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏐</text></svg>">
 <!--
   Bestyrelsens opgaver – https://brebnhi.github.io/bestyrelse/ (repoet Brebnhi/bestyrelse).
-  Siden er statisk. Den henter opgaverne direkte fra repoets issues via GitHubs åbne API,
-  hver gang den åbnes. Status skiftes gennem bestyrelsens mellemmand (config.js).
+  Siden er statisk. Den henter opgaverne direkte fra repoets issues via GitHubs åbne API, hver gang
+  den åbnes. Alt, man gør på siden (tilføje, rette, tage, skifte status, skrive en opdatering, sætte
+  næste møde), går gennem bestyrelsens mellemmand (Google Apps Script, se config.js og README.md).
 
   Reglerne (se README.md):
-    label @Navn                     = ansvarlig (gerne flere; @Alle = hele bestyrelsen)
+    label @Navn                     = ansvarlig (gerne flere)
+    label Bestyrelsen               = kan alle tage (ingen @Navn = det samme)
     label Next up / I gang / Venter = status (ingen status-label = Ikke startet)
-    (3/10) sidst i titlen           = deadline
-    lukket issue                    = færdig
+    (3/10) sidst i titlen           = deadline · (næste møde) = følger datoen for næste møde
+    lukket issue                    = færdig (lukket som "not planned" = droppet)
+    **Opdateringer** i beskrivelsen = logbogen: hvem gjorde hvad og hvornår, og resultatet
+    📅 Bestyrelsesmøder (issue)     = mødedatoerne
   Kun issues fra repoets ejer, samarbejdspartnere og repoets robot (github-actions) vises.
   Tabel-issues ("📥 …" / label import) er input til robotten og vises ikke.
 
-  Links: ?person=Søren viser kun Sørens opgaver · ?opgave=12 åbner opgave 12 · ?eksempel viser et eksempel
+  Links: ?person=Søren (Sørens opgaver, og siden ved, det er Søren) · ?opgave=12 · ?ny=1 (tilføj)
+         ?visning=moede (Til mødet) · ?eksempel (et eksempel)
 -->
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--ink:#16181d;--muted:#6b7280;--line:#e3e6eb;--hover:#f3f5f8;
 --ok:#0f7b4f;--okbg:#e7f5ee;--warn:#9a3412;--warnbg:#fdf0e7;--bad:#a11d1d;--badbg:#fbeaea;
 --accent:#1b4f9c;--accentbg:#eaf0fa;--gul:#9a6700;--gulbg:#fbf1d6;--lilla:#6a3dba;--lillabg:#f0eafb;
---graa:#4b5563;--graabg:#eef0f3;color-scheme:light dark}
+--graa:#4b5563;--graabg:#eef0f3;--pulje:#8a5a00;--puljebg:#fdf3d7;color-scheme:light dark}
 @media(prefers-color-scheme:dark){:root{--bg:#101216;--card:#181b21;--ink:#e8eaed;--hover:#1f232b;
 --muted:#9aa1ac;--line:#2a2f38;--ok:#5fd39b;--okbg:#12291f;--warn:#f0a868;--warnbg:#2b1e12;
 --bad:#f08a8a;--badbg:#2b1616;--accent:#7fa8ec;--accentbg:#1c2a44;--gul:#f0c35a;--gulbg:#2b2410;
---lilla:#bda2f4;--lillabg:#241c36;--graa:#b4bac4;--graabg:#23272f}}
+--lilla:#bda2f4;--lillabg:#241c36;--graa:#b4bac4;--graabg:#23272f;--pulje:#f0c35a;--puljebg:#2b2410}}
 *{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,
 BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 [hidden]{display:none!important}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 a{color:var(--accent)}
 button{font:inherit;color:inherit}
-.wrap{max-width:1040px;margin:0 auto;padding:32px 16px 64px}
+.wrap{max-width:1040px;margin:0 auto;padding:32px 16px 96px;padding-left:max(16px,env(safe-area-inset-left));
+padding-right:max(16px,env(safe-area-inset-right))}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0 0 14px}
 .eyebrow{margin:0 0 6px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
 .eyebrow a{color:var(--accent);text-decoration:none}
 .eyebrow a:hover{text-decoration:underline}
-h1{font-size:28px;line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}
-.sub{color:var(--muted);margin:0 0 20px;max-width:62ch}
+h1{font-size:28px;line-height:1.15;margin:0 0 4px;letter-spacing:-.02em}
+.hej{margin:0;color:var(--muted);font-size:14px}
+.hej .linkknap{font-size:14px}
+.ny-top{flex:none;margin-top:18px}
 
-.banner{border-radius:12px;padding:12px 16px;margin:0 0 18px;border:1px solid;font-size:14.5px}
+/* Næste møde og faner */
+.moedebar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin:0 0 14px}
+.moede-info{display:flex;align-items:center;gap:10px;min-width:0;font-size:14.5px}
+.moede-info .ikon{font-size:20px;line-height:1}
+.moede-info strong{font-weight:650}
+.moede-info .naar{color:var(--muted)}
+.faner{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+.faner button{border:0;background:none;padding:7px 16px;font-size:14px;font-weight:650;cursor:pointer;color:var(--muted);min-height:36px}
+.faner button+button{border-left:1px solid var(--line)}
+.faner button[aria-selected="true"]{background:var(--accentbg);color:var(--accent)}
+.faner .prikken{display:inline-block;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:9px;
+background:var(--warn);color:#fff;font-size:11.5px;line-height:18px;font-weight:700;vertical-align:1px}
+
+.banner{border-radius:12px;padding:12px 16px;margin:0 0 16px;border:1px solid;font-size:14.5px}
 .banner.warn{background:var(--warnbg);border-color:var(--warn);color:var(--warn)}
 .banner.info{background:var(--accentbg);border-color:var(--accent);color:var(--accent)}
 .banner strong{display:block;font-size:15.5px;margin-bottom:2px}
 .banner .lille-knap{margin-top:8px}
+.skub{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;border-radius:12px;
+padding:12px 14px 12px 16px;margin:0 0 16px;background:var(--accentbg);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);
+color:var(--ink);font-size:14.5px}
+.skub .knap{flex:none}
 
-/* Vælg dit navn */
+/* Vælg navn */
 .navne-overskrift{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
 .vaelg{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);
-border-radius:99px;padding:5px 12px;font-size:14px;font-weight:600;cursor:pointer;min-height:34px}
+border-radius:99px;padding:5px 12px;font-size:14px;font-weight:600;cursor:pointer;min-height:34px;white-space:nowrap}
 .vaelg:hover{border-color:var(--muted)}
 .vaelg[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .vaelg .prik{width:8px;height:8px;border-radius:50%;background:hsl(var(--h) 60% 48%)}
 .vaelg .tal{font-weight:500;opacity:.6;font-variant-numeric:tabular-nums}
+.vaelg.pulje-valg[aria-pressed="true"]{background:var(--pulje);border-color:var(--pulje);color:var(--card)}
+.chips.store .vaelg{min-height:44px;padding:8px 16px;font-size:15.5px}
 
 .linje{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin:0 0 10px}
 .overblik{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:14px;color:var(--muted)}
@@ -75,7 +112,6 @@ font-size:13px;font-weight:600;cursor:pointer;color:var(--accent)}
 .lille-knap:hover{border-color:var(--accent)}
 
 /* Tabellen: én linje pr. opgave */
-/* Kolonnebredder som variabler, så en kolonne kan skjules (bredde 0) på små skærme og i grupperinger */
 .tabel{--we:192px;--wp:150px;--wd:100px;--ws:120px;--luft:14px;
 background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .th,.rk,.gr{display:grid;grid-template-columns:minmax(0,1fr) var(--we) var(--wp) var(--wd) var(--ws);align-items:center;padding:0 16px}
@@ -87,7 +123,6 @@ text-transform:uppercase;color:var(--muted)}
 .sorter:hover{color:var(--ink)}
 .sorter[aria-pressed="true"]{color:var(--accent)}
 .sorter[aria-pressed="true"]::after{content:" ▾"}
-.skjul{visibility:hidden;padding:0!important}
 .gr{min-height:36px;background:var(--bg);border-bottom:1px solid var(--line);font-size:13.5px;font-weight:700}
 .gr>span{grid-column:1/-1;display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden}
 .gr .antal{color:var(--muted);font-weight:600}
@@ -104,19 +139,22 @@ text-transform:uppercase;color:var(--muted)}
 .aabn{display:block;width:100%;border:0;background:none;padding:12px 0;margin:0;text-align:left;cursor:pointer;
 font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .aabn:focus-visible{outline:none}
-.aabn::after{content:"";position:absolute;inset:0}                /* hele rækken kan klikkes */
+.rk .aabn::after{content:"";position:absolute;inset:0}                /* hele rækken kan klikkes */
 .c-person{font-size:14px;color:var(--muted)}
+.c-person.pulje-tekst{color:var(--pulje);font-weight:600}
 .c-dl{font-size:14px;font-variant-numeric:tabular-nums}
 .c-dl.over{color:var(--bad);font-weight:700}
 .c-dl.snart{color:var(--warn);font-weight:650}
 .c-dl.ingen,.c-person.ingen{color:var(--muted);opacity:.7}
+.c-dl.tekst{color:var(--muted)}
 .st{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;white-space:nowrap}
 .st .prik,.prik{width:9px;height:9px;border-radius:50%;background:var(--c,currentColor);flex:none}
 .s-ny{--c:#9aa1ac}.s-next{--c:var(--accent)}.s-igang{--c:#d29b00}.s-venter{--c:var(--lilla)}.s-faerdig{--c:var(--ok)}.s-droppet{--c:#9aa1ac}
 .st.s-ny{color:var(--muted)}
 .rk.lukket .aabn{color:var(--muted);font-weight:500}
 .rk.droppet .aabn{text-decoration:line-through}
-.rk.gemmer{opacity:.6}
+.gemmer{opacity:.62}
+.gemmer-tekst{font-size:12px;color:var(--muted);font-weight:600;margin-left:6px}
 .kort-tekst{display:none}
 .tom-raekke{padding:22px 16px;text-align:center;color:var(--muted)}
 .tom-raekke strong{display:block;color:var(--ink);font-size:16px;margin-bottom:2px}
@@ -126,7 +164,23 @@ font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .faerdig-knap{margin:14px 0 10px;border:0;background:none;padding:4px 0;color:var(--accent);font-weight:650;cursor:pointer;font-size:14px}
 .faerdig-knap:hover{text-decoration:underline}
 
-/* Mellemstore skærme: emnet vises kun som ikon */
+/* Kan alle tage */
+.pulje{margin:22px 0 0}
+.pulje-titel{display:flex;align-items:center;gap:8px;margin:0 0 2px;font-size:15.5px}
+.pulje-titel .antal{color:var(--muted);font-weight:600}
+.pulje-hjaelp{margin:0 0 10px;color:var(--muted);font-size:13.5px}
+.pulje-liste{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pr{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;
+padding:0 10px 0 16px;min-height:50px;border-bottom:1px solid var(--line)}
+.pr:last-child{border-bottom:0}
+.pr:hover{background:var(--hover)}
+.pr .aabn::after{content:"";position:absolute;inset:0}
+.pr .c-dl{font-size:13.5px}
+.tag-knap{position:relative;z-index:1;border:1px solid var(--pulje);background:var(--puljebg);color:var(--pulje);border-radius:99px;
+padding:6px 13px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;min-height:36px}
+.tag-knap:hover{filter:brightness(.97)}
+.tag-knap:disabled{opacity:.5;cursor:default}
+
 @media(max-width:900px){
   .tabel{--we:40px;--wp:130px;--wd:92px;--ws:112px}
   .bred{display:none}
@@ -134,9 +188,9 @@ font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tabel.gruppe-emne .c-emne{visibility:hidden;padding:0!important}
 }
 @media(max-width:640px){
-  .wrap{padding-top:22px}
+  .wrap{padding-top:20px}
   h1{font-size:24px}
-  /* navnene på én linje, som man kan stryge sidelæns */
+  .knap.ny-top{display:none}
   .chips#personer{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px 14px;padding:0 16px 4px;scrollbar-width:none;
     -webkit-overflow-scrolling:touch}
   .chips#personer::-webkit-scrollbar{display:none}
@@ -153,29 +207,43 @@ font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .forklaring{display:flex}
   .aabn{padding:12px 0;font-size:14.5px}
   .linje{flex-direction:column;align-items:flex-start}
-  .sorter[aria-pressed="true"]::after{content:none}   /* knapperne over tabellen viser valget */
+  .sorter[aria-pressed="true"]::after{content:none}
+  .pr{grid-template-columns:minmax(0,1fr) auto;padding:0 8px 0 12px}
+  .pr .c-dl{display:none}
+  .moedebar{flex-direction:column;align-items:stretch}
+  .faner{align-self:flex-start}
 }
 
-/* Opgaven åbnet */
-dialog.detalje{border:0;padding:0;margin:auto;border-radius:16px;width:calc(100% - 32px);max-width:560px;
-max-height:calc(100vh - 48px);background:var(--card);color:var(--ink);box-shadow:0 24px 64px -16px rgba(0,0,0,.5);overflow:auto}
-dialog.detalje::backdrop{background:rgba(12,15,20,.5)}
-.d-inner{padding:20px 22px 18px}
-.d-hoved{display:flex;gap:14px;align-items:flex-start}
-.d-hoved h2{flex:1;margin:0;font-size:19px;line-height:1.35;letter-spacing:-.01em;overflow-wrap:anywhere}
+/* Ark (dialoger) – på telefonen kommer de nedefra */
+dialog.ark{border:0;padding:0;margin:auto;border-radius:16px;width:calc(100% - 32px);max-width:560px;
+max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);background:var(--card);color:var(--ink);
+box-shadow:0 24px 64px -16px rgba(0,0,0,.5);overflow:auto;overscroll-behavior:contain}
+dialog.ark.lille{max-width:440px}
+dialog.ark::backdrop{background:rgba(12,15,20,.5)}
+.ark-inner{padding:20px 22px 18px}
+.ark-hoved{display:flex;gap:14px;align-items:flex-start;margin:0 0 4px}
+.ark-hoved h2{flex:1;margin:0;font-size:19px;line-height:1.35;letter-spacing:-.01em;overflow-wrap:anywhere}
 .luk{flex:none;width:36px;height:36px;border:0;border-radius:99px;background:var(--graabg);cursor:pointer;font-size:20px;line-height:1;
 display:grid;place-items:center;margin:-4px -6px 0 0}
 .luk:hover{background:var(--line)}
-.d-fakta{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 16px;margin:16px 0 0;font-size:14.5px}
+@media(max-width:640px){
+  dialog.ark{width:100%;max-width:none;margin:auto 0 0;border-radius:18px 18px 0 0;max-height:92vh;max-height:92dvh}
+  dialog.ark[open]{animation:op .22s ease-out}
+  .ark-inner{padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+}
+@keyframes op{from{transform:translateY(40px)}to{transform:none}}
+@media(prefers-reduced-motion:reduce){dialog.ark[open]{animation:none}}
+
+.d-fakta{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 16px;margin:14px 0 0;font-size:14.5px}
 .d-fakta dt{color:var(--muted)}
-.d-fakta dd{margin:0;display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.d-fakta dd{margin:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .d-fakta .over{color:var(--bad);font-weight:700}
 .d-fakta .snart{color:var(--warn);font-weight:650}
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600;padding:2px 9px;
 border-radius:99px;background:var(--graabg);color:var(--graa);white-space:nowrap}
 .chip.person{background:hsl(var(--h) 70% 92%);color:hsl(var(--h) 55% 26%)}
 @media(prefers-color-scheme:dark){.chip.person{background:hsl(var(--h) 28% 22%);color:hsl(var(--h) 75% 80%)}}
-.chip.alle{background:var(--accentbg);color:var(--accent)}
+.chip.pulje{background:var(--puljebg);color:var(--pulje)}
 .d-afsnit{margin:18px 0 0}
 .d-afsnit h3{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .st-knapper{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
@@ -189,14 +257,51 @@ border:1px solid var(--line);border-radius:11px;background:var(--card);font-size
 .drop[aria-pressed="true"]{color:var(--ink);font-weight:650;text-decoration:none}
 .laast{margin:0;font-size:13.5px;color:var(--muted)}
 .d-noter{margin:0;white-space:pre-wrap;font-size:14.5px;overflow-wrap:anywhere;background:var(--bg);border-radius:10px;padding:10px 12px}
+.resultat{margin:0;font-size:14.5px;background:var(--okbg);color:var(--ink);border-radius:10px;padding:10px 12px;overflow-wrap:anywhere}
+.resultat.mangler{background:var(--warnbg)}
+.svar-boks{margin-top:12px;padding:14px;border-radius:12px;background:var(--bg);border:1px solid var(--line)}
+.svar-boks label{display:block;font-weight:650;font-size:14px;margin:0 0 6px}
+.hurtig{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px}
+.hurtig button{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:4px 11px;font-size:13px;cursor:pointer;min-height:32px}
+.hurtig button:hover{border-color:var(--muted)}
+.skriv{display:flex;gap:8px;align-items:flex-end}
+.skriv textarea{flex:1}
+textarea.auto{min-height:42px;resize:none;overflow:hidden}
+.log{list-style:none;margin:0;padding:0;font-size:13.5px;color:var(--muted)}
+.log li{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px;padding:5px 0;border-top:1px solid var(--line)}
+.log li:first-child{border-top:0}
+.log .log-dato{font-variant-numeric:tabular-nums}
+.log b{color:var(--ink);font-weight:650}
+.log .citat{color:var(--ink)}
+.log-mere{border:0;background:none;padding:6px 0 0;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer}
+.d-tag{margin:14px 0 0;padding:12px 14px;border-radius:12px;background:var(--puljebg);display:flex;flex-wrap:wrap;align-items:center;
+justify-content:space-between;gap:10px;font-size:14px}
 .d-fod{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 14px;margin:20px 0 0;
 padding-top:14px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+.d-fod .venstre{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
 .d-fod a{font-weight:600}
-@media(max-width:640px){
-  dialog.detalje{width:100%;max-width:none;margin:auto 0 0;border-radius:18px 18px 0 0;max-height:92vh}
-  .d-inner{padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
-  .st-knapper{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
+@media(max-width:640px){.st-knapper{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Formularer */
+.felt{display:flex;flex-direction:column;gap:5px;margin:0 0 14px;font-size:13.5px;font-weight:650}
+.felt>span:first-child,.felt-navn{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+input[type=text],input[type=date],input[type=time],textarea,select{font:inherit;font-weight:400;font-size:16px;padding:9px 11px;
+border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);min-height:44px;width:100%}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+.hvad{font-size:17px!important;font-weight:550!important}
+.hint{margin:6px 0 0;font-size:13px;color:var(--muted);font-weight:500}
+.hint strong{color:var(--ink)}
+.raekke{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.handling{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.knap{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--accent);border-radius:10px;
+padding:9px 16px;font-weight:650;font-size:14.5px;cursor:pointer;background:var(--accent);color:#fff;text-decoration:none;min-height:42px}
+@media(prefers-color-scheme:dark){.knap{color:#0d1726}}
+.knap.sekundaer{background:transparent;color:var(--accent)}
+.knap.stor{width:100%;min-height:48px;font-size:16px}
+.knap:disabled{opacity:.45;cursor:not-allowed}
+.knap.ok{background:var(--ok);border-color:var(--ok)}
+.fejl-tekst{color:var(--bad);font-size:13.5px;font-weight:600;margin:8px 0 0}
+.lille-tekst{font-size:12.5px;color:var(--muted);margin:10px 0 0;text-align:center}
 
 /* Værktøjer under tabellen */
 .vaerktoejer{display:grid;gap:12px;margin-top:40px}
@@ -205,32 +310,65 @@ details.panel{background:var(--card);border:1px solid var(--line);border-radius:
 details.panel>summary{cursor:pointer;font-weight:650}
 details.panel[open]>summary{margin-bottom:10px}
 .hjaelp{color:var(--muted);font-size:13.5px;margin:0 0 12px}
-.felt{display:flex;flex-direction:column;gap:5px;margin:0 0 12px;font-size:13.5px;font-weight:600}
-.felt input,.felt select,.felt textarea{font:inherit;font-weight:400;font-size:15px;padding:8px 10px;border:1px solid var(--line);
-border-radius:8px;background:var(--bg);color:var(--ink);min-height:40px;width:100%}
-.felt textarea{min-height:76px;resize:vertical}
-.felt textarea.referat{min-height:200px;font-size:13.5px;line-height:1.45}
-.raekke{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.handling{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
-.forhaand{font-size:13px;color:var(--muted);margin:10px 0 0;overflow-wrap:anywhere}
-.forhaand code{font-size:12.5px;background:var(--graabg);color:var(--ink);padding:1px 5px;border-radius:5px}
+.hjaelp:last-child{margin-bottom:0}
+.trin{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:13.5px}
+.trin li{margin:3px 0}
+.trin b{color:var(--ink)}
 .ok-besked{color:var(--ok);font-weight:600;font-size:13.5px}
-hr.skil{border:0;border-top:1px solid var(--line);margin:18px 0 14px}
-.knap{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--accent);border-radius:9px;
-padding:9px 16px;font-weight:650;font-size:14.5px;cursor:pointer;background:var(--accent);color:#fff;text-decoration:none;min-height:40px}
-@media(prefers-color-scheme:dark){.knap{color:#0d1726}}
-.knap.sekundaer{background:transparent;color:var(--accent)}
-.knap:disabled{opacity:.45;cursor:not-allowed}
 .tomt{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:28px 20px;text-align:center}
 .tomt h2{margin:0 0 6px;font-size:18px}
 .tomt p{margin:0 auto 16px;color:var(--muted);max-width:54ch}
 .knapper{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .henter{color:var(--muted);font-size:14px;padding:18px 16px;margin:0}
 
-.besked{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);max-width:calc(100% - 32px);z-index:10;
-background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;font-weight:600;
+/* Til mødet */
+.mv-hoved{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px;margin:4px 0 16px}
+.mv-hoved h2{margin:0 0 4px;font-size:21px;letter-spacing:-.01em}
+.mv-sub{margin:0;color:var(--muted);font-size:14px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.mv-sub input{width:auto;min-height:34px;padding:4px 8px;font-size:14px}
+.klar{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px}
+.klar .chip{font-size:13px;padding:4px 10px}
+.klar .chip.ok{background:var(--okbg);color:var(--ok)}
+.klar .chip.mangler{background:var(--warnbg);color:var(--warn)}
+.mv-afsnit{margin:0 0 26px}
+.mv-afsnit>h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:16px}
+.mv-afsnit>h3 .antal{color:var(--muted);font-weight:600}
+.mv-gruppe{margin:14px 0 6px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+display:flex;align-items:center;gap:7px}
+.punkter{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.punkt{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:11px 16px;cursor:pointer}
+.punkt:last-child{border-bottom:0}
+.punkt:hover{background:var(--hover)}
+.p-titel{display:block;font-weight:650;font-size:15px;overflow-wrap:anywhere}
+.p-meta{display:block;font-size:13px;color:var(--muted);margin-top:1px}
+.p-meta .over{color:var(--bad);font-weight:650}
+.p-nyt{display:block;font-size:14px;margin-top:4px;overflow-wrap:anywhere}
+.p-nyt.mangler{color:var(--warn);font-weight:600}
+.p-nyt.svag{color:var(--muted)}
+.tom-afsnit{padding:16px;color:var(--muted);font-size:14px;text-align:center}
+
+/* Statusrunde */
+.runde-trin{font-size:13px;color:var(--muted);font-weight:600;margin:0 0 12px}
+.runde-kort{padding:14px 16px;border-radius:12px;background:var(--bg);margin:0 0 16px}
+.runde-kort h3{margin:0 0 4px;font-size:17px;line-height:1.35;overflow-wrap:anywhere}
+.runde-valg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.runde-valg .st-knap{min-height:48px;flex-direction:row}
+.runde-slut{text-align:center;padding:12px 0 4px}
+.runde-slut .stor-ikon{font-size:42px;line-height:1;margin:0 0 8px}
+
+/* Knappen til at tilføje (telefon) */
+.fab{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:calc(18px + env(safe-area-inset-bottom));z-index:5;width:60px;height:60px;
+border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:32px;line-height:1;cursor:pointer;display:none;
+box-shadow:0 10px 26px -8px rgba(18,52,107,.6),0 2px 6px rgba(0,0,0,.18)}
+@media(prefers-color-scheme:dark){.fab{color:#0d1726}}
+.fab:active{transform:scale(.96)}
+@media(max-width:640px){.fab{display:grid;place-items:center}}
+
+.besked{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:calc(100% - 32px);
+z-index:20;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;font-weight:600;
 box-shadow:0 8px 28px -10px rgba(0,0,0,.45)}
 .besked.fejl{background:var(--bad);color:#fff}
+@media(max-width:640px){.besked{bottom:calc(92px + env(safe-area-inset-bottom));width:max-content}}
 
 footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
 .linkknap{border:0;background:none;padding:0;color:var(--accent);font-weight:600;cursor:pointer;font-size:12.5px;text-decoration:underline}
@@ -240,92 +378,125 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <p class="eyebrow"><a href="../">Aalborg Volley</a> · bestyrelsen</p>
-    <h1>Bestyrelsens opgaver</h1>
-    <p class="sub" id="sub">Vælg dit navn for at se dine opgaver. Tryk på en opgave for at se det hele.</p>
+  <header class="top">
+    <div>
+      <p class="eyebrow"><a href="../">Aalborg Volley</a> · bestyrelsen</p>
+      <h1>Bestyrelsens opgaver</h1>
+      <p class="hej" id="hej"></p>
+    </div>
+    <button class="knap ny-top" id="ny-top" type="button">＋ Tilføj opgave</button>
   </header>
 
-  <div class="banner" id="banner" role="status" hidden></div>
-
-  <section id="navnevalg" hidden>
-    <p class="navne-overskrift" id="navne-overskrift">Vis opgaver for</p>
-    <div class="chips" id="personer" role="group" aria-labelledby="navne-overskrift"></div>
-  </section>
-
-  <div class="linje" id="linje" hidden>
-    <div class="overblik" id="overblik"></div>
-    <div class="sortering" id="sortering">
-      <span id="sorter-tekst">Sortér efter</span>
-      <div class="seg" role="group" aria-labelledby="sorter-tekst">
-        <button type="button" data-sort="deadline">Deadline</button>
-        <button type="button" data-sort="person">Person</button>
-        <button type="button" data-sort="emne">Emne</button>
-      </div>
+  <div class="moedebar">
+    <div class="moede-info" id="moede-info"></div>
+    <div class="faner" role="tablist" aria-label="Visning">
+      <button type="button" role="tab" id="fane-opgaver" data-visning="opgaver">Opgaver</button>
+      <button type="button" role="tab" id="fane-moede" data-visning="moede">Til mødet</button>
     </div>
   </div>
 
-  <main id="indhold"><p class="henter">Henter opgaver fra GitHub …</p></main>
+  <div class="banner" id="banner" role="status" hidden></div>
+  <div id="skub" hidden></div>
+
+  <div id="v-opgaver">
+    <section id="navnevalg" hidden>
+      <p class="navne-overskrift" id="navne-overskrift">Vis opgaver for</p>
+      <div class="chips" id="personer" role="group" aria-labelledby="navne-overskrift"></div>
+    </section>
+    <div class="linje" id="linje" hidden>
+      <div class="overblik" id="overblik"></div>
+      <div class="sortering" id="sortering">
+        <span id="sorter-tekst">Sortér efter</span>
+        <div class="seg" role="group" aria-labelledby="sorter-tekst">
+          <button type="button" data-sort="deadline">Deadline</button>
+          <button type="button" data-sort="person">Person</button>
+          <button type="button" data-sort="emne">Emne</button>
+        </div>
+      </div>
+    </div>
+    <main id="indhold"><p class="henter">Henter opgaver …</p></main>
+  </div>
+
+  <div id="v-moede" hidden></div>
 
   <section class="vaerktoejer" id="vaerktoejer" hidden>
-    <details class="panel" id="referat">
-      <summary>📋 Status til referatet</summary>
-      <p class="hjaelp">Hele bestyrelsens status samlet – uanset hvilket navn der er valgt. Sæt den
-        ind i referatet i Google Docs.</p>
-      <label class="felt">Færdige opgaver siden (fx sidste møde)
-        <input type="date" id="ref-siden"></label>
-      <label class="felt">Tekst
-        <textarea class="referat" id="ref-tekst" readonly></textarea></label>
-      <div class="handling">
-        <button class="knap" id="ref-kopier" type="button">Kopiér til referatet</button>
-        <span class="ok-besked" id="ref-ok" role="status" hidden>Kopieret ✓</span>
-      </div>
+    <details class="panel" id="hjem">
+      <summary>📱 Læg siden på din telefon</summary>
+      <div id="hjem-indhold"></div>
     </details>
-
-    <details class="panel" id="ny">
-      <summary>＋ Nye opgaver</summary>
-      <p class="hjaelp"><b>Efter et møde:</b> kopiér tabellen fra referatet i Google Docs (Opgave | Person |
-        Deadline), sæt den ind i GitHub med Ctrl+V og tryk <b>Create</b>. Robotten laver én opgave pr. række
-        på et minut.</p>
+    <details class="panel" id="import">
+      <summary>📥 Efter et møde: sæt hele tabellen ind</summary>
+      <p class="hjaelp">Til formanden. Kopiér opgavetabellen fra referatet i Google Docs (Opgave | Person |
+        Deadline), sæt den ind i GitHub med Ctrl+V og tryk <b>Create</b>. Robotten laver én opgave pr. række på et
+        minut og samler mødedatoerne.</p>
+      <p class="hjaelp">I Deadline må der gerne stå ord: <b>ASAP</b>, <b>inden næste møde</b>, <b>om 14 dage</b>,
+        <b>uge 44</b>, <b>fredag</b>, <b>ultimo oktober</b>, <b>inden jul</b> … Robotten laver dem om til en dato.
+        Skriv <b>Bestyrelsen</b> som person, hvis alle kan tage opgaven.</p>
       <div class="handling">
-        <a class="knap" id="import-link" href="https://github.com/Brebnhi/bestyrelse/issues/new?title=%F0%9F%93%A5%20Opgaver%20fra%20m%C3%B8det%20"
-          target="_blank" rel="noopener">📥 Indsæt tabel fra mødet ↗</a>
+        <a class="knap" id="import-link" href="https://github.com/Brebnhi/bestyrelse/issues/new" target="_blank" rel="noopener">📥 Indsæt tabel fra mødet ↗</a>
       </div>
-      <hr class="skil">
-      <p class="hjaelp"><b>Én opgave ad gangen:</b> udfyld her, så åbner GitHub med opgaven klar –
-        tryk derefter <b>Create</b>. Kræver at du er logget ind på GitHub.</p>
-      <label class="felt">Opgave
-        <input id="ny-titel" type="text" placeholder="Fx Book hal til opstartsfesten" autocomplete="off"></label>
-      <div class="felt"><span>Ansvarlig</span><div class="chips" id="ny-personer" style="margin:0"></div></div>
-      <div class="raekke">
-        <label class="felt">Deadline <input id="ny-dl" type="date"></label>
-        <label class="felt">Status
-          <select id="ny-status">
-            <option value="ny">Ikke startet</option>
-            <option value="next">Next up</option>
-            <option value="igang">I gang</option>
-            <option value="venter">Venter</option>
-          </select></label>
-      </div>
-      <label class="felt">Noter (valgfrit)
-        <textarea id="ny-noter" placeholder="Fx link til referatet eller hvem der skal kontaktes"></textarea></label>
-      <div class="handling">
-        <button class="knap" id="ny-opret" type="button" disabled>Opret i GitHub ↗</button>
-      </div>
-      <p class="forhaand" id="ny-forhaand"></p>
     </details>
   </section>
 
   <footer id="fod"></footer>
 </div>
 
-<dialog class="detalje" id="detalje" aria-labelledby="d-titel">
-  <div class="d-inner" id="d-inner"></div>
+<button class="fab" id="fab" type="button" aria-label="Tilføj opgave" title="Tilføj opgave">＋</button>
+
+<dialog class="ark" id="ark-ny" aria-labelledby="ny-titel">
+  <form class="ark-inner" id="ny-form" novalidate>
+    <div class="ark-hoved"><h2 id="ny-titel">Ny opgave</h2>
+      <button type="button" class="luk" data-luk="ark-ny" aria-label="Luk">×</button></div>
+    <label class="felt" style="margin-top:12px"><span>Hvad</span>
+      <input type="text" id="ny-hvad" class="hvad" autocomplete="off" autocapitalize="sentences" enterkeyhint="done"
+        maxlength="200" placeholder="Fx Book hal til julefrokosten" autofocus></label>
+    <div class="felt"><span class="felt-navn">Hvem</span><div class="chips" id="ny-hvem" style="margin:0"></div></div>
+    <div class="felt"><span class="felt-navn">Hvornår</span><div class="chips" id="ny-naar" style="margin:0"></div>
+      <input type="date" id="ny-dato" hidden>
+      <p class="hint" id="ny-hint"></p></div>
+    <p class="fejl-tekst" id="ny-fejl" hidden></p>
+    <button class="knap stor" id="ny-gem" type="submit">Tilføj opgave</button>
+    <p class="lille-tekst" id="ny-under">Den ligger klar til hele bestyrelsen med det samme.</p>
+  </form>
+</dialog>
+
+<dialog class="ark" id="detalje" aria-labelledby="d-titel">
+  <div class="ark-inner" id="d-inner"></div>
+</dialog>
+
+<dialog class="ark lille" id="ark-hvem" aria-labelledby="hvem-titel">
+  <div class="ark-inner">
+    <div class="ark-hoved"><h2 id="hvem-titel">Hvem er du?</h2>
+      <button type="button" class="luk" data-luk="ark-hvem" aria-label="Luk">×</button></div>
+    <p class="hjaelp" style="margin-top:6px">Så viser siden dine opgaver først, og de andre kan se, hvem der har skrevet
+      hvad. Du vælger kun én gang på det her apparat.</p>
+    <div class="chips store" id="hvem-chips" style="margin:0"></div>
+  </div>
+</dialog>
+
+<dialog class="ark lille" id="ark-moede" aria-labelledby="moede-titel">
+  <form class="ark-inner" id="moede-form" novalidate>
+    <div class="ark-hoved"><h2 id="moede-titel">Næste bestyrelsesmøde</h2>
+      <button type="button" class="luk" data-luk="ark-moede" aria-label="Luk">×</button></div>
+    <p class="hjaelp" style="margin-top:6px">Opgaver med deadline “næste møde” får datoen med det samme, og opfølgningen
+      “Til mødet” regner herfra.</p>
+    <div class="raekke">
+      <label class="felt"><span>Dato</span><input type="date" id="moede-dato" required></label>
+      <label class="felt"><span>Klokken (valgfrit)</span><input type="time" id="moede-tid"></label>
+    </div>
+    <p class="fejl-tekst" id="moede-fejl" hidden></p>
+    <button class="knap stor" type="submit">Gem</button>
+    <p class="lille-tekst"><button type="button" class="linkknap" id="moede-aflys" hidden>Mødet er aflyst – fjern datoen</button></p>
+  </form>
+</dialog>
+
+<dialog class="ark" id="ark-runde" aria-labelledby="runde-titel">
+  <div class="ark-inner" id="runde-inner"></div>
 </dialog>
 
 <div class="besked" id="besked" role="status" aria-live="polite" hidden></div>
 
-<!-- config.js fortæller, hvor bestyrelsens mellemmand ligger (se README). Mangler den, er siden skrivebeskyttet. -->
+<!-- config.js fortæller, hvem der er i bestyrelsen, og hvor mellemmanden ligger (se README). -->
 <script src="config.js"></script>
 <script>
 (function () {
@@ -338,62 +509,346 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
   const FAERDIG_DAGE = 45;                      // så længe vises færdige opgaver
   const HENT_DAGE = 150;                        // så langt tilbage hentes lukkede issues
   const LAGER = "aav.bestyrelse.";              // nøgler i browserens lager
-  const DAG = 864e5;
 
-  const STATUS = {
-    ny:      { navn: "Ikke startet", klasse: "s-ny" },
-    next:    { navn: "Next up", klasse: "s-next",
-               alias: ["next up", "next-up", "nextup", "næste", "næste op"] },
-    igang:   { navn: "I gang", klasse: "s-igang",
-               alias: ["i gang", "igang", "i-gang", "in progress", "igangværende"] },
-    venter:  { navn: "Venter", klasse: "s-venter",
-               alias: ["venter", "venter på andre", "afventer", "blokeret", "waiting", "blocked"] },
-    faerdig: { navn: "Færdig", klasse: "s-faerdig" }
-  };
-  const AABNE = ["ny", "next", "igang", "venter"];
-  const MDR = { jan: 1, feb: 2, mar: 3, apr: 4, maj: 5, jun: 6, jul: 7, aug: 8, sep: 9, okt: 10, nov: 11, dec: 12 };
-  const UGEDAG = ["søn", "man", "tir", "ons", "tor", "fre", "lør"];
-  const UGEDAG_LANG = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
-  // Farvetoner til personer i alfabetisk rækkefølge – nabofarver er valgt, så de er lette at skelne,
-  // og rød/orange er undgået, så de ikke forveksles med deadlines
-  const FARVER = [212, 330, 150, 275, 188, 95, 250, 300, 170];
-
-  const S = {
-    opgaver: [],        // normaliserede opgaver
-    kilde: null,        // "github" | "cache" | "eksempel"
-    hentet: null,       // hvornår data er fra
-    person: null,       // valgt navn eller null (= alle)
-    sort: "deadline",   // "deadline" | "person" | "emne"
-    aaben: null,        // nummeret på den opgave, der er åbnet
-    henter: false,
-    fejl: null,
-    sidstForsoegt: 0,
-    visFaerdige: false, // vises de færdige?
-    forEksempel: null,  // de rigtige data gemt væk, mens eksemplet vises
-    labels: null,       // labels hentet fra repoet (til "Ny opgave")
-    labelPersoner: [],  // personer fundet som labels, fx "@Søren" -> "Søren"
-    labelNavn: {},      // "person:søren" / "status:next" -> præcist labelnavn i GitHub
-    afventer: {}        // statusændringer sendt fra siden, som GitHub endnu ikke viser: nr -> {status, tid}
-  };
-
-  // Bestyrelsens mellemmand (Google Apps Script) gør, at alle kan skifte status uden GitHub-konto
   const KONFIG = window.BESTYRELSE || {};
+  // Mellemmanden (Google Apps Script) gør, at alle kan tilføje og rette uden GitHub-konto
   const MELLEMMAND = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(String(KONFIG.mellemmand || "").trim())
     ? String(KONFIG.mellemmand).trim() : "";
-  // Bestyrelsen (config.js): kun de her vises som navne at vælge – også dem uden opgaver
+  // Bestyrelsen (config.js): kun de her kan få opgaver
   const MEDLEMMER = (Array.isArray(KONFIG.medlemmer) ? KONFIG.medlemmer : []).map(function (m) {
     return String(m && typeof m === "object" ? m.navn || "" : m || "").trim();
   }).filter(Boolean);
-  const VALG = [
-    { id: "ny", navn: "Ikke startet" }, { id: "next", navn: "Next up" }, { id: "igang", navn: "I gang" },
-    { id: "venter", navn: "Venter" }, { id: "faerdig", navn: "Færdig ✓" }, { id: "droppet", navn: "Droppet" }
-  ];
+  const ASAP_DAGE = Math.min(60, Math.max(1, parseInt(KONFIG.asapDage, 10) || 7));
+
+  const STATUS = {
+    ny:      { navn: "Ikke startet", klasse: "s-ny" },
+    next:    { navn: "Next up", klasse: "s-next" },
+    igang:   { navn: "I gang", klasse: "s-igang" },
+    venter:  { navn: "Venter", klasse: "s-venter" },
+    faerdig: { navn: "Færdig", klasse: "s-faerdig" },
+    droppet: { navn: "Droppet", klasse: "s-droppet" }
+  };
+  const AABNE = ["ny", "next", "igang", "venter"];
+  const UGEDAG = ["søn", "man", "tir", "ons", "tor", "fre", "lør"];
+  const UGEDAG_LANG = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
+  // Farvetoner til personer i alfabetisk rækkefølge – nabofarver er lette at skelne, og rød/orange er
+  // undgået, så de ikke forveksles med deadlines
+  const FARVER = [212, 330, 150, 275, 188, 95, 250, 300, 170];
   const SORTERINGER = ["deadline", "person", "emne"];
 
+  // ================================================================ FÆLLES (start)
+  // Samme kode står i index.html og i mellemmand.gs – ret begge steder. Reglerne for, hvordan en
+  // opgave (et issue) ser ud: titel "Book hal (3/10)" eller "Book hal (næste møde)", labels @Navn /
+  // Bestyrelsen / status, og en logbog nederst i beskrivelsen under **Opdateringer**.
+  const DAG = 864e5;
+  const MDR = { jan: 1, feb: 2, mar: 3, apr: 4, maj: 5, jun: 6, jul: 7, aug: 8, sep: 9, okt: 10, nov: 11, dec: 12 };
+  const PULJE = "Bestyrelsen";                       // label: opgaven kan alle i bestyrelsen tage
+  const ALLE_NAVNE = ["alle", "bestyrelsen", "hele bestyrelsen", "fælles", "alle i bestyrelsen"];
+  const LOG_MAERKE = "**Opdateringer**";
+  const MOEDE_TITEL = "📅 Bestyrelsesmøder";
+  const MOEDE_LABEL = "møder";
+  const MOEDE_INTRO = "Datoerne for bestyrelsens møder. Siden bruger dem til deadlines som \"næste møde\" og til " +
+    "opfølgningen før hvert møde.\nRet gerne her – én dato pr. linje, fx `- 29/10-2026 kl. 17`. Næste møde kan " +
+    "også sættes på [siden](https://brebnhi.github.io/bestyrelse/).";
+  const STATUSSER = {
+    ny:      { navn: "Ikke startet", label: null },
+    next:    { navn: "Next up", label: "Next up" },
+    igang:   { navn: "I gang", label: "I gang" },
+    venter:  { navn: "Venter", label: "Venter" },
+    faerdig: { navn: "Færdig", label: null, lukket: true, grund: "completed" },
+    droppet: { navn: "Droppet", label: null, lukket: true, grund: "not_planned" }
+  };
+  const STATUS_ALIAS = {
+    next: ["next up", "next-up", "nextup", "næste", "næste op"],
+    igang: ["i gang", "igang", "i-gang", "in progress", "igangværende", "startet"],
+    venter: ["venter", "venter på andre", "afventer", "blokeret", "waiting", "blocked"],
+    faerdig: ["færdig", "done", "afsluttet", "løst"],
+    droppet: ["droppet", "annulleret"]
+  };
+  const NAESTE_MOEDE = /(næste|kommende|førstkommende)\s+(bestyrelses)?møde|^\s*n\.?\s?m\.?\s*$|til\s+mødet/i;
+  const FRIST_ORD = /^(løbende|efter behov|hele sæsonen|sæsonen|fast|kontinuerligt|altid|ved lejlighed|når muligt|når der er tid|ongoing|løbende opgave|hver uge|hver måned|ugentligt|månedligt|årligt|hvert år|næste sæson|inden sæsonstart|sæsonstart|efter jul|efter nytår|generalforsamlingen|inden generalforsamlingen)$/i;
+  const FRIST_PARENTES = /\s*[(\[]\s*(?:deadline|frist)?\s*:?\s*([^()\[\]]+?)\s*[)\]]\s*$/i;
+
+  function lav(s) { return String(s == null ? "" : s).toLocaleLowerCase("da"); }
+  function midnat(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function plusDage(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+  function iso(d) { return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  function isoTilDato(s) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ""));
+    if (!m) return null;
+    const d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return d.getMonth() === +m[2] - 1 && d.getDate() === +m[3] ? d : null;
+  }
+  function fuldDato(d) { return d.getDate() + "/" + (d.getMonth() + 1) + "-" + d.getFullYear(); }
+
+  // Dato uden årstal: samme år som ref – medmindre datoen så ligger mere end 60 dage før, så næste år
+  function lavDato(d, m, aar, ref) {
+    if (!(m >= 1 && m <= 12 && d >= 1 && d <= 31)) return null;
+    if (aar != null && aar < 100) aar += 2000;
+    if (aar == null) {
+      const r = midnat(ref || new Date());
+      aar = r.getFullYear();
+      if (new Date(aar, m - 1, d) < plusDage(r, -60)) aar += 1;
+    }
+    const dt = new Date(aar, m - 1, d);
+    return dt.getMonth() === m - 1 && dt.getDate() === d ? dt : null;
+  }
+  // En dato i starten af teksten: 3/10 · 3/10-26 · 3.10.2026 · 2026-10-03 · 3. okt · 3 oktober 2026
+  function tolkDato(tekst, ref) {
+    const s = lav(String(tekst || "").trim());
+    let m = /^(\d{4})-(\d{1,2})-(\d{1,2})(?!\d)/.exec(s);
+    if (m) return lavDato(+m[3], +m[2], +m[1], ref);
+    m = /^(\d{1,2})\s*[\/.]\s*(\d{1,2})(?:\s*[\/.\-]\s*(\d{4}|\d{2}))?(?!\d)/.exec(s);
+    if (m) return lavDato(+m[1], +m[2], m[3] ? +m[3] : null, ref);
+    m = /^(\d{1,2})\.?\s*(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)[a-zæøå]*\.?(?:\s+(\d{4}))?/.exec(s);
+    if (m) return lavDato(+m[1], MDR[m[2]], m[3] ? +m[3] : null, ref);
+    return null;
+  }
+  // En dato et vilkårligt sted i teksten (som robottens find_dato)
+  function findDato(tekst, ref) {
+    const s = lav(tekst);
+    let m = /(?:^|[^\d])(\d{4})-(\d{1,2})-(\d{1,2})(?!\d)/.exec(s);
+    if (m) return lavDato(+m[3], +m[2], +m[1], ref);
+    m = /(?:^|[^\d\/.])(\d{1,2})\s*[\/.]\s*(\d{1,2})(?:\s*[\/.\-]\s*(\d{4}|\d{2}))?(?!\d)/.exec(s);
+    if (m) return lavDato(+m[1], +m[2], m[3] ? +m[3] : null, ref);
+    m = /(?:^|[^\d])(\d{1,2})\.?\s*(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)[a-zæøå]*\.?(?:\s+(\d{4}))?/.exec(s);
+    if (m) return lavDato(+m[1], MDR[m[2]], m[3] ? +m[3] : null, ref);
+    return null;
+  }
+
+  // ---------------------------------------------------------------- labels
+  function statusFraLabel(navn) {
+    const n = lav(navn).replace(/^[^\p{L}\p{N}]+/u, "").replace(/\s+/g, " ").trim();
+    for (const id in STATUS_ALIAS) if (STATUS_ALIAS[id].indexOf(n) >= 0) return id;
+    return null;
+  }
+  function erStatusLabel(navn) { return statusFraLabel(navn) !== null; }
+  function erPersonLabel(navn) { return /^(?:@|👤)\s*\S/u.test(String(navn || "")); }
+  function personNavn(label) { return String(label || "").replace(/^(?:@|👤)\s*/u, "").trim(); }
+  function erPuljeLabel(navn) { return ALLE_NAVNE.indexOf(lav(String(navn || "").trim().replace(/^@\s*/, "").trim())) >= 0; }
+  function erMoedeIssue(i) {
+    const labels = (i.labels || []).map(function (l) { return lav(typeof l === "string" ? l : l.name); });
+    return /^\s*📅/u.test(i.title || "") || labels.indexOf(MOEDE_LABEL) >= 0;
+  }
+  // ["Ida", "Søren"] -> ["@Ida", "@Søren"] · ["Bestyrelsen"] / [] -> ["Bestyrelsen"]
+  function personLabels(hvem) {
+    const ud = [];
+    for (const n of hvem || []) {
+      const navn = personNavn(String(n || "").trim()) || String(n || "").trim();
+      if (!navn) continue;
+      const l = erPuljeLabel(navn) ? PULJE : "@" + navn;
+      if (!ud.some(function (x) { return lav(x) === lav(l); })) ud.push(l);
+    }
+    const navne = ud.filter(function (l) { return l !== PULJE; });
+    return navne.length ? navne : [PULJE];
+  }
+  function ogListe(navne) {
+    return navne.length <= 1 ? navne.join("") : navne.slice(0, -1).join(", ") + " og " + navne[navne.length - 1];
+  }
+
+  // ---------------------------------------------------------------- titler og deadlines
+  // "Book hal (3/10)" -> { tekst: "Book hal", suffix: " (3/10)", slags: "dato", dato }
+  // "Book hal (næste møde)" -> slags "moede" · "Opdater siden (løbende)" -> slags "tekst"
+  function delTitel(titel, ref) {
+    const t = String(titel || "").trim();
+    const m = FRIST_PARENTES.exec(t);
+    if (m && m.index > 0) {
+      const indhold = m[1].trim();
+      const tekst = t.slice(0, m.index).trim();
+      if (NAESTE_MOEDE.test(indhold)) return { tekst: tekst, suffix: " (" + indhold + ")", slags: "moede" };
+      const d = tolkDato(indhold, ref);
+      if (d) return { tekst: tekst, suffix: " (" + indhold + ")", slags: "dato", dato: d };
+      if (FRIST_ORD.test(indhold)) return { tekst: tekst, suffix: " (" + indhold + ")", slags: "tekst", fristTekst: indhold };
+    }
+    return { tekst: t, suffix: "", slags: null };
+  }
+  // deadline: "" (ingen) · "moede" (næste møde) · "2026-10-29"
+  function fristSuffix(deadline, ref) {
+    if (!deadline) return "";
+    if (deadline === "moede") return " (næste møde)";
+    const d = isoTilDato(deadline);
+    if (!d) return "";
+    const udenAar = lavDato(d.getDate(), d.getMonth() + 1, null, ref || new Date());
+    const sammeAar = udenAar && udenAar.getTime() === d.getTime();
+    return " (" + d.getDate() + "/" + (d.getMonth() + 1) + (sammeAar ? "" : "-" + d.getFullYear()) + ")";
+  }
+  function fristVist(deadline) {
+    if (deadline === "moede") return "næste møde";
+    const d = isoTilDato(deadline);
+    return d ? d.getDate() + "/" + (d.getMonth() + 1) : "ingen";
+  }
+  function renTekst(s, maks) {
+    return String(s == null ? "" : s).replace(/<!--|-->/g, "").replace(/[\r\n\t]+/g, " ").replace(/\s+/g, " ")
+      .trim().slice(0, maks || 500);
+  }
+  function renTitel(s) { return renTekst(s, 200); }
+
+  // ---------------------------------------------------------------- logbogen
+  // "- 19/10-2026 · Ida · Færdig: Hallen er booket" (type uden kolon, tekst efter ": ")
+  function logLinje(dato, af, type, tekst) {
+    return "- " + dato + " · " + renTekst(af, 40).replace(/·/g, "-") + " · " + type + (tekst ? ": " + renTekst(tekst) : "");
+  }
+  function medLog(body, linjer) {
+    let b = String(body || "").replace(/\s+$/, "");
+    if (b.indexOf(LOG_MAERKE) < 0) b = (b ? b + "\n\n" : "") + LOG_MAERKE;
+    return b + "\n" + linjer.join("\n");
+  }
+  // -> { foer: tekst over logbogen, log: [{ dato, datoTekst, af, type, tekst }] }
+  function delLog(body) {
+    const b = String(body || "").replace(/\r/g, "");
+    const i = b.indexOf(LOG_MAERKE);
+    if (i < 0) return { foer: b, log: [] };
+    const log = [];
+    for (const linje of b.slice(i + LOG_MAERKE.length).split("\n")) {
+      const m = /^\s*[-*]\s+(\d{1,2})\/(\d{1,2})-(\d{4})\s+·\s+([^·]+?)\s+·\s+([^:]+?)(?::\s*(.*))?\s*$/.exec(linje);
+      if (!m) continue;
+      const d = new Date(+m[3], +m[2] - 1, +m[1]);
+      log.push({ dato: d, datoTekst: m[1] + "/" + m[2], af: m[4].trim(), type: m[5].trim(), tekst: (m[6] || "").trim() });
+    }
+    return { foer: b.slice(0, i).replace(/\s+$/, ""), log: log };
+  }
+
+  // ---------------------------------------------------------------- én handling på en opgave
+  // issue: { title, body, labels: [navne], state, state_reason } · d: { handling, … , af }
+  // nu: { dato: "19/10-2026", ref: datoen opgaven blev oprettet (til "3/10" uden årstal) }
+  // Returnerer opgaven, som den ser ud bagefter. Kaster en fejltekst, hvis handlingen ikke giver mening.
+  function anvend(issue, d, nu) {
+    let labels = (issue.labels || []).map(function (l) { return typeof l === "string" ? l : l.name; });
+    let title = issue.title || "", state = issue.state || "open", grund = issue.state_reason || null;
+    const log = [], af = d.af || "Nogen";
+    const udenPersoner = function () { return labels.filter(function (l) { return !erPersonLabel(l) && !erPuljeLabel(l); }); };
+    const personer = function () {
+      return labels.filter(function (l) { return erPersonLabel(l) && !erPuljeLabel(l); }).map(personNavn);
+    };
+    if (d.handling === "status") {
+      const st = STATUSSER[d.status];
+      if (!st) throw "Ukendt status: " + d.status;
+      labels = labels.filter(function (l) { return !erStatusLabel(l); });
+      if (st.label) labels.push(st.label);
+      if (st.lukket) { state = "closed"; grund = st.grund; } else { state = "open"; grund = null; }
+      log.push(logLinje(nu.dato, af, st.navn, d.tekst));
+    } else if (d.handling === "opdatering") {
+      if (!renTekst(d.tekst)) throw "Skriv en opdatering.";
+      log.push(logLinje(nu.dato, af, "Opdatering", d.tekst));
+    } else if (d.handling === "tag") {
+      const har = personer();
+      if (har.length && !har.some(function (p) { return lav(p) === lav(af); })) throw ogListe(har) + " har allerede taget den 🙂";
+      if (!har.length || labels.some(erPuljeLabel)) {
+        labels = udenPersoner().concat(["@" + af]);
+        log.push(logLinje(nu.dato, af, "Tog opgaven"));
+      }
+    } else if (d.handling === "slip") {
+      if (!personer().some(function (p) { return lav(p) === lav(af); })) throw "Opgaven ligger ikke hos dig.";
+      const tilbage = personer().filter(function (p) { return lav(p) !== lav(af); });
+      labels = udenPersoner().concat(tilbage.length ? tilbage.map(function (p) { return "@" + p; }) : [PULJE]);
+      log.push(logLinje(nu.dato, af, tilbage.length ? "Sprang fra opgaven" : "Lagt tilbage til bestyrelsen"));
+    } else if (d.handling === "ret") {
+      const dele = delTitel(title, nu.ref);
+      const nyTekst = d.hvad != null ? renTitel(d.hvad) || dele.tekst : dele.tekst;
+      const nySuffix = d.deadline != null ? fristSuffix(d.deadline, nu.ref) : dele.suffix;
+      const aendr = [];
+      if (nyTekst !== dele.tekst) aendr.push("tekst");
+      if (nySuffix.trim() !== dele.suffix.trim()) aendr.push("deadline → " + (d.deadline ? fristVist(d.deadline) : "ingen"));
+      title = nyTekst + nySuffix;
+      if (d.hvem) {
+        const nye = personLabels(d.hvem);
+        const gamle = labels.filter(function (l) { return erPersonLabel(l) || erPuljeLabel(l); });
+        const samme = nye.length === gamle.length && nye.every(function (l) {
+          return gamle.some(function (g) { return lav(g) === lav(l) || (erPuljeLabel(g) && erPuljeLabel(l)); });
+        });
+        if (!samme) {
+          labels = udenPersoner().concat(nye);
+          aendr.push("ansvarlig → " + nye.map(function (l) { return l === PULJE ? PULJE : personNavn(l); }).join(", "));
+        }
+      }
+      if (aendr.length) log.push(logLinje(nu.dato, af, "Rettet", aendr.join(", ")));
+    } else {
+      throw "Ukendt handling: " + d.handling;
+    }
+    const unikke = [];
+    for (const l of labels) if (!unikke.some(function (x) { return lav(x) === lav(l); })) unikke.push(l);
+    return {
+      title: title,
+      body: log.length ? medLog(issue.body, log) : String(issue.body || ""),
+      labels: unikke,
+      state: state,
+      state_reason: grund
+    };
+  }
+  // En ny opgave fra siden: { hvad, hvem: [navne], deadline, af, id }
+  function bygNy(d, nu) {
+    return {
+      title: renTitel(d.hvad) + fristSuffix(d.deadline, nu.ref),
+      body: (d.id ? "<!-- id:" + String(d.id).replace(/[^\w-]/g, "") + " -->\n" : "") + LOG_MAERKE + "\n" +
+        logLinje(nu.dato, d.af || "Nogen", "Tilføjet"),
+      labels: personLabels(d.hvem),
+      state: "open",
+      state_reason: null
+    };
+  }
+
+  // ---------------------------------------------------------------- mødedatoerne (📅-issuet)
+  // -> { "2026-10-29": "29/10-2026 kl. 17", … }
+  function laesMoeder(body, ref) {
+    const ud = {};
+    for (const linje of String(body || "").replace(/\r/g, "").split("\n")) {
+      const m = /^\s*[-*]\s+(.+)$/.exec(linje);
+      if (!m) continue;
+      const d = findDato(m[1], ref || new Date());
+      if (d) ud[iso(d)] = m[1].trim();
+    }
+    return ud;
+  }
+  function skrivMoeder(datoer) {
+    return MOEDE_INTRO + "\n\n" + Object.keys(datoer).sort().map(function (k) { return "- " + datoer[k]; }).join("\n") + "\n";
+  }
+  // Næste møde sat til dato (fjerner møder fra i dag og frem til den dato, og det møde der flyttes)
+  function opdaterMoeder(datoer, dato, erstat, tid, idag) {
+    const ud = {};
+    for (const k in datoer) ud[k] = datoer[k];
+    if (erstat) delete ud[iso(erstat)];
+    if (dato) {
+      for (const k of Object.keys(ud)) {
+        const d = isoTilDato(k);
+        if (d && d >= midnat(idag) && d < dato) delete ud[k];
+      }
+      const t = /^(\d{1,2}):(\d{2})$/.exec(String(tid || ""));
+      ud[iso(dato)] = fuldDato(dato) + (t ? " kl. " + (+t[1]) + (t[2] === "00" ? "" : "." + t[2]) : "");
+    }
+    return ud;
+  }
+  // ================================================================ FÆLLES (slut)
+
+  const S = {
+    raa: [],            // issues fra GitHub (eller lageret)
+    nyere: {},          // nr -> { issue, tid }: svar fra mellemmanden, som GitHub måske ikke viser endnu
+    udbakke: [],        // handlinger, der venter på at blive sendt: { id, d, tid, besked, net }
+    opgaver: [],        // opgaverne, som de vises
+    moeder: [],         // mødedatoer (Date), sorteret
+    moedeTekst: {},     // "2026-10-29" -> "29/10-2026 kl. 17"
+    harMoedeIssue: false,
+    kilde: null,        // "github" | "mellemmand" | "cache" | "eksempel"
+    hentet: null,
+    henter: false,
+    sender: false,
+    fejl: null,
+    sidstForsoegt: 0,
+    person: null,       // filteret: vis opgaver for …
+    mig: null,          // hvem der bruger siden på det her apparat
+    sort: "deadline",
+    visning: "opgaver", // "opgaver" | "moede"
+    aaben: null,        // nummeret på den åbne opgave
+    udfold: null,       // i den åbne opgave: "faerdig" | "droppet" (spørger om resultatet)
+    visLog: false,
+    visFaerdige: false,
+    moedeSiden: null,   // valgt "siden"-dato under Til mødet
+    forEksempel: null,
+    installer: null     // Androids "installér"-hændelse
+  };
+
   // ------------------------------------------------------------------ emner
-  // Siden gætter emnet ud fra ordene i opgaven. Gætter den forkert, så giv opgaven en label i GitHub
-  // med emnets navn (fx "Økonomi" eller "Tøj") – den vinder over gættet.
-  // Ord: almindelig tekst tæller 1 (højst 2 gange), "~ord" tæller ½, /regex/ tæller 1, {re, v} tæller v.
+  // Siden gætter emnet ud fra ordene i opgaven (samme regler som robotten). En label med emnets navn
+  // i GitHub (fx "Økonomi" eller "Tøj") vinder over gættet.
   const EMNER = [
     { id: "oekonomi", navn: "Økonomi", ikon: "💰", personer: [/^kasserer(en|ne|e)?$/],
       ord: ["økonomi", "kontingent", "betal", "faktura", "regnskab", "budget", "refusion", "mobilepay", "kasserer",
@@ -418,7 +873,8 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
         "dommerstol", "flyttekasse", "materiel", "rekvisit"] },
     { id: "kommunikation", navn: "Kommunikation", ikon: "📣",
       ord: ["hjemmeside", "facebook", "instagram", "nyhedsbrev", "presse", "interview", "dk4", /\btv\b/, "volley-tv",
-        "medie", "billede", "holdbeskrivelse", "plakat", "annonce", "~opslag", "~chat", "~gruppebesked", "~manus"] },
+        "medie", "billede", "holdbeskrivelse", "plakat", "annonce", "~opslag", "~chat", "~gruppebesked", "~manus",
+        /\bsome\b/, "sociale medier"] },
     { id: "faciliteter", navn: "Haller & lokaler", ikon: "🔑",
       ord: [/\bhal(len|ler|lerne|tid|tider)?\b/, "haltid", "nøgle", "klubhus", "lokale", /\brum(met)?\b/, "brik",
         "katedral", "computer", "~låne", "lån af", "omklædning", "depot", /\bskab(e|et)?\b/] },
@@ -430,11 +886,10 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
   const ANDET = { id: "andet", navn: "Andet", ikon: "📌" };
   (function () {          // gør ordene klar én gang: alt bliver til regex med vægt
     const esc = function (s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); };
+    const kilde = function (src) {      // \b kender ikke æ/ø/å – brug samme ordgrænser som robotten
+      return src.replace(/^\\b/, "(?:^|[^a-z0-9æøåéü])").replace(/\\b$/, "(?=[^a-z0-9æøåéü]|$)");
+    };
     for (const e of EMNER) {
-      // \b kender ikke æ/ø/å – brug samme ordgrænser som robotten
-      const kilde = function (src) {
-        return src.replace(/^\\b/, "(?:^|[^a-z0-9æøåéü])").replace(/\\b$/, "(?=[^a-z0-9æøåéü]|$)");
-      };
       e.regler = e.ord.map(function (o) {
         if (o instanceof RegExp) return { re: new RegExp(kilde(o.source), "g"), v: 1 };
         if (o && o.re) return { re: new RegExp(kilde(o.re.source), "g"), v: o.v };
@@ -443,10 +898,8 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
       });
     }
   })();
-  // Point pr. emne for ordene i opgaven (og hvem den er til). Det tidligste ord i teksten giver
-  // et lille ekstra point, fordi starten af en opgave som regel siger, hvad den handler om.
   function gaetEmne(titel, personer) {
-    const t = " " + String(titel || "").toLocaleLowerCase("da").replace(/\s+/g, " ") + " ";
+    const t = " " + lav(titel).replace(/\s+/g, " ") + " ";
     const point = EMNER.map(function () { return 0; });
     let tidligst = Infinity, tidligstI = -1;
     EMNER.forEach(function (e, i) {
@@ -461,7 +914,7 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
         point[i] += antal * r.v;
       }
       for (const navn of personer || []) {
-        const n = String(navn).toLocaleLowerCase("da").trim();
+        const n = lav(navn).trim();
         if ((e.personer || []).some(function (x) { return x.test(n); })) point[i] += 1;
       }
     });
@@ -470,9 +923,8 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     point.forEach(function (p, i) { if (p > max + 1e-9) { max = p; bedst = i; } });
     return bedst >= 0 ? EMNER[bedst] : ANDET;
   }
-  // En label med et emnes navn ("Økonomi", "Tøj", "Emne: Sponsorer og fonde" …) vinder over gættet
   function normEmne(s) {
-    return String(s).toLocaleLowerCase("da").replace(/^\s*(emne|kategori)\s*:\s*/, "").replace(/\bog\b/g, "&")
+    return lav(s).replace(/^\s*(emne|kategori)\s*:\s*/, "").replace(/\bog\b/g, "&")
       .replace(/[^\p{L}\p{N}&]+/gu, " ").replace(/\s*&\s*/g, " & ").trim();
   }
   function emneFraLabels(tags) {
@@ -497,6 +949,7 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
       if (k === "class") e.className = v;
       else if (k === "style") for (const s in v) e.style.setProperty(s, v[s]);
       else if (k.slice(0, 2) === "on") e.addEventListener(k.slice(2), v);
+      else if (k === "value") e.value = v;
       else e.setAttribute(k, v === true ? "" : v);
     }
     const born = Array.prototype.slice.call(arguments, 2).flat(Infinity);
@@ -509,18 +962,18 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
   function laes(k) { try { return localStorage.getItem(LAGER + k); } catch (e) { return null; } }
   function skriv(k, v) {
     try { if (v == null) localStorage.removeItem(LAGER + k); else localStorage.setItem(LAGER + k, v); }
-    catch (e) { /* lager slået fra – så husker siden bare ikke valget */ }
+    catch (e) { /* lager slået fra eller fyldt – så husker siden det bare ikke */ }
   }
-  const da = function (a, b) { return a.localeCompare(b, "da"); };
-  const lav = function (s) { return String(s).toLocaleLowerCase("da"); };
+  function laesJson(k, standard) { try { const v = JSON.parse(laes(k) || "null"); return v == null ? standard : v; } catch (e) { return standard; } }
+  const da = function (a, b) { return String(a).localeCompare(String(b), "da"); };
   function ejefald(navn) { return /[sxz]$/i.test(navn) ? navn + "'" : navn + "s"; }
   function flertal(n, en, flere) { return n + " " + (n === 1 ? en : flere); }
+  function uid() { return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9); }
   function hash(s) {
     let h = 0;
     for (const c of lav(s)) h = (h * 31 + c.codePointAt(0)) >>> 0;
     return h;
   }
-  // Hver person får sin egen farve, fordelt i alfabetisk rækkefølge
   let farveTabel = new Map();
   function fordelFarver(navne) {
     farveTabel = new Map();
@@ -533,17 +986,19 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     const f = farveTabel.get(lav(navn));
     return f != null ? f : FARVER[hash(navn) % FARVER.length];
   }
+  function kendtNavn(navn) {
+    return MEDLEMMER.filter(function (m) { return lav(m) === lav(navn); })[0] || null;
+  }
 
   // ------------------------------------------------------------------ datoer
-  function midnat(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
-  function dageTil(d) { return Math.round((midnat(d) - midnat(new Date())) / DAG); }
+  function idag() { return midnat(new Date()); }
+  function dageTil(d) { return Math.round((midnat(d) - idag()) / DAG); }
   function dm(d) {
     const iaar = d.getFullYear() === new Date().getFullYear();
     return d.getDate() + "/" + (d.getMonth() + 1) + (iaar ? "" : "-" + String(d.getFullYear()).slice(2));
   }
   function kortDato(d) { return UGEDAG[d.getDay()] + " " + dm(d); }
   function langDato(d) { return UGEDAG_LANG[d.getDay()] + " " + dm(d); }
-  function fuldDato(d) { return d.getDate() + "/" + (d.getMonth() + 1) + "-" + d.getFullYear(); }
   function klokken(d) { return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2); }
   function relativ(dage) {
     if (dage === 0) return "i dag";
@@ -552,43 +1007,15 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     if (dage > 13 && dage <= 55) return "om " + Math.round(dage / 7) + " uger";
     if (dage > 55) return "om " + Math.round(dage / 30) + " mdr.";
     const over = -dage;
+    if (over === 1) return "i går";
     if (over <= 13) return flertal(over, "dag", "dage") + " over tid";
     return Math.round(over / 7) + " uger over tid";
   }
-
-  // Dato uden årstal: samme år som referencen (typisk da opgaven blev oprettet) –
-  // medmindre datoen så ligger mere end 60 dage før, så er det næste år.
-  function lavDato(d, m, aar, ref) {
-    if (!(m >= 1 && m <= 12 && d >= 1 && d <= 31)) return null;
-    if (aar != null && aar < 100) aar += 2000;
-    if (aar == null) {
-      const r = midnat(ref || new Date());
-      aar = r.getFullYear();
-      if (new Date(aar, m - 1, d) < new Date(r.getTime() - 60 * DAG)) aar += 1;
-    }
-    const dt = new Date(aar, m - 1, d);
-    return dt.getMonth() === m - 1 && dt.getDate() === d ? dt : null;
-  }
-  // Tolker en dato i starten af teksten: 3/10 · 3/10-26 · 3.10.2026 · 2026-10-03 · 3. okt · 3 oktober 2026
-  function tolkDato(tekst, ref) {
-    const s = lav(String(tekst || "").trim());
-    let m = /^(\d{4})-(\d{1,2})-(\d{1,2})(?!\d)/.exec(s);
-    if (m) return lavDato(+m[3], +m[2], +m[1], ref);
-    m = /^(\d{1,2})\s*[\/.]\s*(\d{1,2})(?:\s*[\/.\-]\s*(\d{4}|\d{2}))?(?!\d)/.exec(s);
-    if (m) return lavDato(+m[1], +m[2], m[3] ? +m[3] : null, ref);
-    m = /^(\d{1,2})\.?\s*(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)[a-zæøå]*\.?(?:\s+(\d{4}))?/.exec(s);
-    if (m) return lavDato(+m[1], MDR[m[2]], m[3] ? +m[3] : null, ref);
-    return null;
-  }
-  // "Book hal (3/10)" -> { titel: "Book hal", deadline: Date }
-  function delTitel(titel, ref) {
-    const t = String(titel || "").trim();
-    const m = /\s*[(\[]\s*(?:deadline|frist)?\s*:?\s*([^()\[\]]+?)\s*[)\]]\s*$/i.exec(t);
-    if (m) {
-      const d = tolkDato(m[1], ref);
-      if (d) return { titel: t.slice(0, m.index).trim() || t, deadline: d };
-    }
-    return { titel: t, deadline: null };
+  function naarTekst(dage, d) {
+    if (dage === 0) return "i dag";
+    if (dage === 1) return "i morgen";
+    if (dage > 1 && dage < 7) return "på " + UGEDAG_LANG[d.getDay()];
+    return relativ(dage);
   }
   // Reserve: "Deadline: 3/10" som linje i beskrivelsen (eller "### Deadline" fra en formular)
   function deadlineIBeskrivelse(body, ref) {
@@ -606,8 +1033,8 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     s = s.replace(/\n{3,}/g, "\n\n").trim();
     return s === "_No response_" ? "" : s;
   }
-  // Robotten skriver "Oprettet af robotten fra #12 (Opgaver fra mødet 29/9)." og – hvis opgaven var
-  // for lang til en titel – "Hele opgaven: …" i beskrivelsen
+  // Robotten skriver "Oprettet af robotten fra #12 (Opgaver fra mødet 29/9)." og – hvis opgaven var for
+  // lang til en titel – "Hele opgaven: …"
   function delNoter(noter) {
     let s = noter || "", kilde = null, hel = null;
     const m = /^Oprettet af robotten fra #\d+ \((.*)\)\.[ \t]*\n*/.exec(s);
@@ -617,79 +1044,112 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     return { kilde: kilde, hel: hel, noter: s.trim() };
   }
 
+  // ------------------------------------------------------------------ møder
+  function naesteMoede() { const i = idag(); return S.moeder.filter(function (d) { return d >= i; })[0] || null; }
+  function sidsteMoede() {
+    const graense = naesteMoede() || plusDage(idag(), 1);
+    let s = null;
+    for (const d of S.moeder) if (d < graense) s = d;
+    return s;
+  }
+  function moedeEfter(d) { return S.moeder.filter(function (x) { return x > d; })[0] || null; }
+  function moedeKlokken(d) {
+    const m = /kl\.?\s*(\d{1,2})(?:[.:](\d{2}))?/i.exec(S.moedeTekst[iso(d)] || "");
+    return m ? "kl. " + m[1] + (m[2] && m[2] !== "00" ? "." + m[2] : "") : "";
+  }
+  function moedeNavn(d) { const k = moedeKlokken(d); return langDato(d) + (k ? " " + k : ""); }
+  function sidenSidst() { return S.moedeSiden || sidsteMoede() || plusDage(idag(), -FAERDIG_DAGE); }
+
   // ------------------------------------------------------------------ issues -> opgaver
-  function personFraLabel(navn) {
-    const m = /^(?:@|👤)\s*(.+)$/u.exec(navn);
-    return m ? m[1].trim() : null;
-  }
-  function statusFraLabel(navn) {
-    const n = lav(navn).replace(/^[^\p{L}\p{N}]+/u, "").replace(/\s+/g, " ").trim();
-    for (const id of ["next", "igang", "venter"]) if (STATUS[id].alias.indexOf(n) >= 0) return id;
-    return null;
-  }
   function labelNavne(i) {
     return (i.labels || []).map(function (l) { return String(typeof l === "string" ? l : l.name || "").trim(); });
   }
-  // Tabel-issues ("📥 Opgaver fra mødet …") er ikke opgaver – robotten laver opgaverne ud fra dem
   function erImport(i) {
     return /^\s*📥/u.test(i.title || "") || labelNavne(i).some(function (n) { return lav(n) === "import"; });
   }
-  // Opgaver oprettet af dig (ejeren), samarbejdspartnere eller repoets egen robot. Fremmede ignoreres.
+  // Opgaver oprettet af ejeren (også via mellemmanden), samarbejdspartnere eller repoets robot
   function erOpgave(i) {
-    if (i.pull_request || erImport(i)) return false;
+    if (i.pull_request || erImport(i) || erMoedeIssue(i)) return false;
     if (i.user && i.user.login === "github-actions[bot]") return true;
     return !i.author_association || /^(OWNER|MEMBER|COLLABORATOR)$/.test(i.author_association);
   }
-  const ALLE_NAVNE = ["alle", "bestyrelsen", "hele bestyrelsen", "fælles"];
-  const LUK = { "færdig": "faerdig", "done": "faerdig", "droppet": "droppet" };
   function normaliser(i) {
-    const oprettet = new Date(i.created_at);
+    const oprettet = i.created_at ? new Date(i.created_at) : new Date();
+    const oprettetDag = midnat(oprettet);
     const personer = [], tags = [];
-    let status = null, luk = null, alle = false;
+    let status = null, luk = null, pulje = false;
     for (const navn of labelNavne(i)) {
       if (!navn) continue;
-      const p = personFraLabel(navn);
-      if (p) {
-        if (ALLE_NAVNE.indexOf(lav(p)) >= 0) alle = true;
-        else if (!personer.some(function (x) { return lav(x) === lav(p); })) personer.push(p);
+      if (erPuljeLabel(navn)) { pulje = true; continue; }
+      if (erPersonLabel(navn)) {
+        const p = kendtNavn(personNavn(navn)) || personNavn(navn);
+        if (!personer.some(function (x) { return lav(x) === lav(p); })) personer.push(p);
         continue;
       }
       const st = statusFraLabel(navn);
+      if (st === "faerdig" || st === "droppet") { luk = st; continue; }     // robotten lukker den om lidt
       if (st) { if (AABNE.indexOf(st) > AABNE.indexOf(status)) status = st; continue; }
-      const l = LUK[lav(navn).replace(/^[^\p{L}]+/u, "")];
-      if (l) { luk = l; continue; }        // robotten lukker opgaven om et øjeblik
       tags.push(navn);
     }
-    const t = delTitel(i.title, oprettet);
+    const bl = delLog(i.body);
+    const n = delNoter(renNoter(bl.foer));
+    const t = delTitel(i.title, oprettetDag);
     const lukket = i.state === "closed" || luk !== null;
+    const droppet = (i.state === "closed" && (i.state_reason === "not_planned" || i.state_reason === "duplicate")) || luk === "droppet";
     const emneLabel = emneFraLabels(tags);
     if (emneLabel) tags.splice(tags.indexOf(emneLabel.tag), 1);
-    const emne = emneLabel ? emneLabel.emne : gaetEmne(delNoter(renNoter(i.body)).hel || t.titel, personer);
+    // Hvor opgaven kommer fra: et møde (robotten) eller nogen på siden
+    const tilfoejet = bl.log.filter(function (e) { return e.type === "Tilføjet"; })[0] || null;
+    let kildeDato = null;
+    if (n.kilde) kildeDato = findDato(n.kilde, oprettetDag);
+    // Deadline
+    let deadline = null, dlSlags = null, dlTekst = null;
+    if (t.slags === "dato") { deadline = t.dato; dlSlags = "dato"; }
+    else if (t.slags === "moede") {
+      // "næste møde" = det første møde efter mødet, opgaven kom fra – eller efter den dag, den blev rettet til det
+      let ref = kildeDato || oprettetDag;
+      for (const e of bl.log) if (e.type === "Rettet" && /deadline → næste møde/.test(e.tekst)) ref = e.dato;
+      dlSlags = "moede";
+      deadline = moedeEfter(ref);
+    }
+    else if (t.slags === "tekst") { dlSlags = "tekst"; dlTekst = t.fristTekst; }
+    else { deadline = deadlineIBeskrivelse(bl.foer, oprettet); if (deadline) dlSlags = "dato"; }
+    // Resultatet: teksten på den seneste "Færdig"/"Droppet" i logbogen
+    let resultat = null;
+    if (lukket) {
+      for (const e of bl.log) if ((e.type === "Færdig" || e.type === "Droppet")) resultat = e.tekst || null;
+    }
     return {
-      emne: emne,
-      emneGaet: !emneLabel,                // gættet ud fra teksten (ingen emne-label i GitHub)
+      emne: emneLabel ? emneLabel.emne : gaetEmne(n.hel || t.tekst, personer),
+      emneGaet: !emneLabel,
       nr: i.number,
       url: i.html_url || null,
-      titel: t.titel,
-      deadline: t.deadline || deadlineIBeskrivelse(i.body, oprettet),
+      titel: t.tekst || i.title,
+      helTitel: n.hel || t.tekst || i.title,
+      deadline: deadline, dlSlags: dlSlags, dlTekst: dlTekst,
       personer: personer.sort(da),
-      alle: alle,                          // @Alle = hele bestyrelsen
+      pulje: pulje || !personer.length,
       tags: tags,
       status: lukket ? "faerdig" : (status || "ny"),
-      droppet: (i.state === "closed" && (i.state_reason === "not_planned" || i.state_reason === "duplicate")) || luk === "droppet",
+      droppet: droppet,
       lukket: i.state === "closed" && i.closed_at ? new Date(i.closed_at) : lukket ? new Date() : null,
-      oprettet: isNaN(oprettet) ? null : oprettet,
-      noter: renNoter(i.body)
+      oprettet: oprettet, oprettetDag: oprettetDag,
+      fraDato: kildeDato && kildeDato <= oprettetDag ? kildeDato : oprettetDag,   // mødet, opgaven kom fra
+      kilde: n.kilde ? (kildeDato && /møde/i.test(n.kilde) ? "Mødet " + dm(kildeDato) : n.kilde)
+        : tilfoejet ? "Tilføjet af " + tilfoejet.af + " " + tilfoejet.datoTekst : null,
+      tilfoejetAf: tilfoejet ? tilfoejet.af : null,
+      noter: n.noter,
+      log: bl.log,
+      resultat: resultat,
+      ny: !!i._ny, venter: !!i._venter, net: !!i._net
     };
   }
-  function harPerson(o, navn) {
-    return o.alle || o.personer.some(function (p) { return lav(p) === lav(navn); });
-  }
-  function egenPerson(o, navn) { return o.personer.some(function (p) { return lav(p) === lav(navn); }); }
+  function hvem(o) { return o.personer.length ? o.personer.slice() : [PULJE]; }
+  function egenPerson(o, navn) { return !!navn && o.personer.some(function (p) { return lav(p) === lav(navn); }); }
   function efterDeadline(a, b) {
-    const x = a.deadline ? a.deadline.getTime() : Infinity;
-    const y = b.deadline ? b.deadline.getTime() : Infinity;
-    return (x - y) || (a.nr - b.nr);
+    const v = function (o) { return o.deadline ? o.deadline.getTime() : o.dlSlags === "moede" ? 8.6e15 : 8.7e15; };
+    const n = function (o) { return typeof o.nr === "number" ? o.nr : 1e9; };       // ventende nye sidst
+    return (v(a) - v(b)) || (n(a) - n(b)) || da(a.nr, b.nr);
   }
   function allePersoner() {
     if (MEDLEMMER.length) return MEDLEMMER.slice().sort(da);
@@ -700,8 +1160,83 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
   function erFaerdigNylig(o) {
     return o.status === "faerdig" && o.lukket && o.lukket.getTime() >= Date.now() - FAERDIG_DAGE * DAG;
   }
+  function find(nr) { return S.opgaver.filter(function (x) { return String(x.nr) === String(nr); })[0]; }
+  // Mangler opgaven en status til de andre før mødet? (intet nyt siden sidste møde, eller færdig uden resultat)
+  function manglerStatus(o, siden) {
+    if (o.ny || !o.personer.length) return false;
+    if (o.status !== "faerdig") {
+      const sidst = o.log.length ? o.log[o.log.length - 1].dato : o.fraDato;
+      return sidst <= siden;
+    }
+    return !!(o.lukket && o.lukket >= siden && !o.resultat);
+  }
+  function rundeListe(navn) {
+    const siden = sidenSidst();
+    return S.opgaver.filter(function (o) { return egenPerson(o, navn || S.mig) && manglerStatus(o, siden); })
+      .sort(function (a, b) { return (a.status === "faerdig") - (b.status === "faerdig") || efterDeadline(a, b); });
+  }
 
-  // ------------------------------------------------------------------ hent fra GitHub
+  // ------------------------------------------------------------------ data: GitHub + det, der er sendt
+  function afled() {
+    const kort = new Map();
+    for (const i of S.raa) kort.set(i.number, i);
+    const nu = Date.now();
+    for (const nr in S.nyere) {
+      const n = S.nyere[nr], g = kort.get(+nr);
+      if (nu - n.tid > 15 * 60 * 1000 || (g && g.updated_at && n.issue.updated_at && g.updated_at >= n.issue.updated_at)) {
+        delete S.nyere[nr];
+        continue;
+      }
+      kort.set(+nr, n.issue);
+    }
+    // Handlinger, der ikke er sendt endnu, vises med det samme
+    const dato = fuldDato(idag());
+    for (const post of S.udbakke) {
+      const d = post.d;
+      try {
+        if (d.handling === "opret") {
+          const ny = bygNy(Object.assign({}, d, { id: null }), { dato: dato, ref: idag() });
+          kort.set("u-" + post.id, Object.assign(ny, { number: "u-" + post.id, created_at: new Date(post.tid).toISOString(),
+            author_association: "OWNER", _ny: true, _net: !!post.net }));
+        } else if (d.handling === "moede") {
+          let m = null;
+          kort.forEach(function (i) { if (!m && erMoedeIssue(i) && i.state !== "closed") m = i; });
+          const body = skrivMoeder(opdaterMoeder(laesMoeder(m ? m.body : "", idag()), isoTilDato(d.dato), isoTilDato(d.erstat), d.tid, idag()));
+          if (m) kort.set(m.number, Object.assign({}, m, { body: body }));
+          else kort.set("u-" + post.id, { number: "u-" + post.id, title: MOEDE_TITEL, body: body, labels: [MOEDE_LABEL], state: "open" });
+        } else {
+          const i = kort.get(d.nr);
+          if (!i) continue;
+          const efter = anvend(i, d, { dato: dato, ref: midnat(new Date(i.created_at || Date.now())) });
+          kort.set(d.nr, Object.assign({}, i, efter, { _venter: true, _net: !!post.net }));
+        }
+      } catch (e) { /* handlingen giver ikke mening længere – mellemmanden afgør det */ }
+    }
+    const alle = Array.from(kort.values());
+    // Mødedatoerne: 📅-issuet, plus møder fra tabel-issues (titlen) for en sikkerheds skyld
+    const datoer = {};
+    let moedeIssue = null;
+    for (const i of alle) if (erMoedeIssue(i) && i.state !== "closed" && !moedeIssue) moedeIssue = i;
+    if (moedeIssue) Object.assign(datoer, laesMoeder(moedeIssue.body, idag()));
+    let nyesteImport = null;
+    for (const i of alle) {
+      if (!erImport(i) || !/møde/i.test(i.title || "")) continue;
+      const opr = midnat(new Date(i.created_at || Date.now()));
+      const d = findDato(String(i.title).replace(/^\s*📥\s*/u, ""), opr) || opr;
+      if (!datoer[iso(d)]) datoer[iso(d)] = fuldDato(d);
+      if (!nyesteImport || i.created_at > nyesteImport.created_at) nyesteImport = i;
+    }
+    if (!moedeIssue && nyesteImport) {        // før robotten har lavet 📅-issuet: "Næste møde:" i tabellen
+      const m = /^[\s>*_#-]*næste\s+(?:bestyrelses)?møde\b(.*)$/im.exec(String(nyesteImport.body || "").replace(/<[^>]+>/g, ""));
+      const d = m && findDato(m[1], midnat(new Date(nyesteImport.created_at)));
+      if (d && !datoer[iso(d)]) datoer[iso(d)] = fuldDato(d);
+    }
+    S.harMoedeIssue = !!moedeIssue;
+    S.moedeTekst = datoer;
+    S.moeder = Object.keys(datoer).sort().map(isoTilDato).filter(Boolean);
+    S.opgaver = alle.filter(erOpgave).map(normaliser);
+  }
+
   async function hentSider(url, frisk) {
     let ud = [];
     for (let side = 0; url && side < 5; side++) {
@@ -726,58 +1261,168 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     const siden = new Date();
     siden.setUTCHours(0, 0, 0, 0);                       // samme adresse hele dagen = kan caches
     siden.setUTCDate(siden.getUTCDate() - HENT_DAGE);
-    const res = await Promise.all([
-      hentSider(API + "/issues?state=open&per_page=100", frisk),
-      hentSider(API + "/issues?state=closed&per_page=100&sort=updated&direction=desc&since=" +
-        siden.toISOString().replace(/\.\d{3}Z$/, "Z"), frisk)
-    ]);
-    const raa = res[0].concat(res[1]).filter(erOpgave);
-    gemCache(raa);
-    return raa;
+    try {
+      const res = await Promise.all([
+        hentSider(API + "/issues?state=open&per_page=100", frisk),
+        hentSider(API + "/issues?state=closed&per_page=100&sort=updated&direction=desc&since=" +
+          siden.toISOString().replace(/\.\d{3}Z$/, "Z"), frisk)
+      ]);
+      return { kilde: "github", raa: res[0].concat(res[1]).filter(function (i) { return !i.pull_request; }) };
+    } catch (e) {
+      // GitHubs grænse for opslag uden login er nået på netværket: spørg mellemmanden i stedet
+      if (MELLEMMAND && (e.graense || e.status === 403)) {
+        try {
+          const r = await fetch(MELLEMMAND + "?handling=liste");
+          const svar = await r.json();
+          if (svar && svar.ok && Array.isArray(svar.issues)) return { kilde: "mellemmand", raa: svar.issues };
+        } catch (e2) { /* vis den oprindelige fejl */ }
+      }
+      throw e;
+    }
   }
-  function gemCache(raa) {
-    const lille = raa.map(function (i) {
+  function gemCache() {
+    const lille = S.raa.map(function (i) {
       return {
-        number: i.number, title: i.title, body: String(i.body || "").slice(0, 2000),
+        number: i.number, title: i.title, body: String(i.body || "").slice(0, 12000),
         state: i.state, state_reason: i.state_reason, created_at: i.created_at, closed_at: i.closed_at,
-        html_url: i.html_url, labels: (i.labels || []).map(function (l) { return typeof l === "string" ? l : l.name; })
+        updated_at: i.updated_at, html_url: i.html_url, author_association: i.author_association,
+        user: i.user ? { login: i.user.login } : null,
+        labels: (i.labels || []).map(function (l) { return typeof l === "string" ? l : l.name; })
       };
     });
-    skriv("cache", JSON.stringify({ tid: new Date().toISOString(), issues: lille }));
+    skriv("cache2", JSON.stringify({ tid: new Date().toISOString(), issues: lille }));
   }
-  function laesCache() {
-    try {
-      const c = JSON.parse(laes("cache") || "null");
-      return c && Array.isArray(c.issues) ? c : null;
-    } catch (e) { return null; }
-  }
+  function gemUdbakke() { skriv("udbakke", S.udbakke.length ? JSON.stringify(S.udbakke) : null); }
+  function gemNyere() { skriv("nyere", Object.keys(S.nyere).length ? JSON.stringify(S.nyere) : null); }
 
   async function opdater(frisk) {
     if (S.henter || S.kilde === "eksempel") return;
     S.henter = true;
     if (S.opgaver.length) tegnFod(); else vis();
     try {
-      const raa = await hentFraGitHub(frisk);
-      const data = { opgaver: raa.map(normaliser), kilde: "github", hentet: new Date() };
-      if (S.kilde === "eksempel") {
-        Object.assign(S.forEksempel, data);        // eksemplet vises stadig – gem til bagefter
-      } else {
-        Object.assign(S, data);
-        anvendAfventende();
-        S.fejl = null;
-        skjulBanner();
-      }
+      const hentet = await hentFraGitHub(frisk);
+      if (S.kilde === "eksempel") return;
+      S.raa = hentet.raa;
+      S.kilde = hentet.kilde;
+      S.hentet = new Date();
+      S.fejl = null;
+      gemCache();
+      skjulBanner();
     } catch (e) {
       S.fejl = e;
       if (S.kilde !== "eksempel") visFejl(e);
     } finally {
       S.henter = false;
       S.sidstForsoegt = Date.now();
-      vis();
+      if (S.kilde !== "eksempel") { afled(); vis(); }
     }
+    if (S.udbakke.length) toemUdbakke();
   }
 
-  // ------------------------------------------------------------------ banner / fejl
+  // ------------------------------------------------------------------ handlinger (gennem mellemmanden)
+  // Alt, man gør, lægges i en udbakke og vises med det samme. Udbakken sendes til mellemmanden – uden
+  // forbindelse ligger den, til der er net igen (som en notesblok).
+  function send(d, besked) {
+    const post = { id: uid(), d: Object.assign({ version: 2, af: S.mig }, d), tid: Date.now(), besked: besked || "Gemt ✓" };
+    if (S.kilde === "eksempel") {                       // eksemplet: ændringen sker kun her på siden
+      eksempelGem(post);
+      vis();
+      visBesked("Eksempel – intet bliver gemt · " + (besked || ""));
+      return;
+    }
+    if (!MELLEMMAND) {
+      visBesked("Siden kan ikke gemme: adressen på mellemmanden mangler i config.js", true);
+      return;
+    }
+    S.udbakke.push(post);
+    gemUdbakke();
+    afled();
+    vis();
+    toemUdbakke();
+  }
+  let forsoegTimer = null;
+  async function toemUdbakke() {
+    if (S.sender || !S.udbakke.length || S.kilde === "eksempel") return;
+    S.sender = true;
+    clearTimeout(forsoegTimer);
+    let netfejl = false, sendt = 0;
+    try {
+      while (S.udbakke.length) {
+        const post = S.udbakke[0];
+        if (!post.net || sendt === 0) visBesked("Gemmer …", false, true);
+        let r, svar;
+        try {
+          r = await fetch(MELLEMMAND, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },   // undgår ekstra CORS-forespørgsel
+            body: JSON.stringify(Object.assign({ id: post.id }, post.d))
+          });
+        } catch (e) {                                   // intet net: prøv igen senere
+          post.net = true;
+          gemUdbakke();
+          netfejl = true;
+          break;
+        }
+        try { svar = await r.json(); }
+        catch (e) { svar = { ok: false, fejl: "mellemmanden svarede ikke som forventet (HTTP " + r.status + ")" }; }
+        S.udbakke.shift();
+        gemUdbakke();
+        sendt++;
+        if (svar && svar.ok) {
+          if (svar.issue) { S.nyere[svar.issue.number] = { issue: svar.issue, tid: Date.now() }; gemNyere(); }
+          visBesked(post.besked);
+        } else {
+          const gammel = svar && !svar.version && post.d.handling !== "status";
+          visBesked(gammel ? "Mellemmanden er den gamle version – formanden skal opdatere den (se README)"
+            : "Kunne ikke gemme – " + ((svar && svar.fejl) || "ukendt fejl"), true);
+        }
+        afled();
+        vis();
+      }
+    } finally {
+      S.sender = false;
+      if (netfejl) {
+        afled();
+        vis();
+        visBesked(navigator.onLine === false ? "Ingen forbindelse – det gemmes, så snart du er online"
+          : "Kunne ikke nå mellemmanden – prøver igen om lidt", true);
+        forsoegTimer = setTimeout(toemUdbakke, 30000);
+      } else if (sendt) {
+        setTimeout(function () { opdater(true); }, 9000);
+      }
+    }
+  }
+  // Kræver, at siden ved, hvem man er – ellers spørger den først
+  let efterHvem = null;
+  function kraevMig(fn) {
+    if (S.mig || S.kilde === "eksempel") { if (!S.mig && S.kilde === "eksempel") S.mig = allePersoner()[0] || "Søren"; fn(); return; }
+    efterHvem = fn;
+    tegnHvem();
+    aabnArk("ark-hvem");
+  }
+  function saetMig(navn) {
+    const foer = S.mig;
+    S.mig = navn;
+    if (S.kilde !== "eksempel") skriv("mig", navn);
+    if (!S.person || S.person === foer) { S.person = navn; if (S.kilde !== "eksempel") skriv("person", navn); saetAdresse("person", navn); }
+  }
+  function gemStatus(nr, status, tekst) {
+    const o = find(nr);
+    const navn = STATUS[status].navn;
+    send({ handling: "status", nr: nr, status: status, tekst: tekst || "" },
+      (status === "faerdig" ? "Færdig ✓ " : status === "droppet" ? "Droppet: " : navn + ": ") + (o ? o.titel : ""));
+  }
+  function tagOpgave(nr) {
+    kraevMig(function () {
+      const o = find(nr);
+      send({ handling: "tag", nr: nr }, "🙋 Den er din: " + (o ? o.titel : ""));
+    });
+  }
+  function slipOpgave(nr) {
+    kraevMig(function () { send({ handling: "slip", nr: nr }, "Lagt tilbage til bestyrelsen"); });
+  }
+
+  // ------------------------------------------------------------------ banner / beskeder
   function skjulBanner() { const b = $("banner"); b.hidden = true; b.replaceChildren(); }
   function visBanner(klasse, overskrift, tekst, knap) {
     const b = $("banner");
@@ -792,17 +1437,26 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
       return "GitHub tillader et begrænset antal opslag i timen uden login, og grænsen er nået på dit netværk." +
         (e.nulstil ? " Prøv igen efter kl. " + klokken(e.nulstil) + "." : " Prøv igen om lidt.");
     }
-    return "Kunne ikke hente opgaverne fra GitHub lige nu. Tjek forbindelsen og prøv igen.";
+    return "Kunne ikke hente opgaverne lige nu. Tjek forbindelsen og prøv igen.";
   }
-  // Uden data viser selve siden fejlen (se vis()); med gemte data kommer et banner ovenover.
   function visFejl(e) {
-    if (!S.opgaver.length || !S.hentet) { skjulBanner(); return; }
+    if (!S.raa.length || !S.hentet) { skjulBanner(); return; }
     visBanner("warn", "Viser opgaverne fra " + kortDato(S.hentet) + " kl. " + klokken(S.hentet), fejlTekst(e),
       el("button", { class: "lille-knap", type: "button", onclick: function () { opdater(true); } }, "Prøv igen"));
+  }
+  let beskedTimer = null;
+  function visBesked(tekst, fejl, bliv) {
+    const b = $("besked");
+    b.textContent = tekst;
+    b.className = "besked" + (fejl ? " fejl" : "");
+    b.hidden = false;
+    clearTimeout(beskedTimer);
+    if (!bliv) beskedTimer = setTimeout(function () { b.hidden = true; }, fejl ? 8000 : 3200);
   }
 
   // ------------------------------------------------------------------ småtegninger
   function personChip(navn) {
+    if (erPuljeLabel(navn)) return el("span", { class: "chip pulje" }, "🙋 " + PULJE);
     return el("span", { class: "chip person", style: { "--h": farve(navn) } }, navn);
   }
   function medLinks(tekst) {
@@ -820,86 +1474,28 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     return f;
   }
   function statusId(o) { return o.status === "faerdig" && o.droppet ? "droppet" : o.status; }
-  function statusNavn(o) { const id = statusId(o); return id === "droppet" ? "Droppet" : STATUS[id].navn; }
-  function statusKlasse(o) { const id = statusId(o); return id === "droppet" ? "s-droppet" : STATUS[id].klasse; }
-  function hvem(o) {
-    const navne = o.personer.slice();
-    if (o.alle) navne.unshift("Hele bestyrelsen");
-    return navne;
-  }
-
-  // ------------------------------------------------------------------ skift status
+  function statusNavn(o) { return STATUS[statusId(o)].navn; }
+  function statusKlasse(o) { return STATUS[statusId(o)].klasse; }
   function kanRette() { return !!MELLEMMAND || S.kilde === "eksempel"; }
-  function saetStatus(o, ny) {
-    if (ny === "faerdig" || ny === "droppet") {
-      if (o.status !== "faerdig") o.lukket = new Date();
-      o.status = "faerdig";
-      o.droppet = ny === "droppet";
-    } else {
-      o.status = ny;
-      o.droppet = false;
-      o.lukket = null;
+  function dlCelle(o, klasse) {
+    if (o.status === "faerdig" && o.lukket) {
+      return el("span", { class: klasse + " c-dl" }, el("span", { class: "lang-tekst" }, kortDato(o.lukket)), el("span", { class: "kort-tekst" }, dm(o.lukket)));
     }
-  }
-  function find(nr) { return S.opgaver.filter(function (x) { return x.nr === nr; })[0]; }
-  function gemAfventer() { skriv("afventer", Object.keys(S.afventer).length ? JSON.stringify(S.afventer) : null); }
-  // GitHub kan være et øjeblik om at vise en ændring – indtil da vises den ændring, der er sendt herfra
-  function anvendAfventende() {
-    const nu = Date.now();
-    for (const nr in S.afventer) {
-      const a = S.afventer[nr], o = find(+nr);
-      if (!o || nu - a.tid > 3 * 60 * 1000 || statusId(o) === a.status) { delete S.afventer[nr]; continue; }
-      saetStatus(o, a.status);
+    if (o.deadline) {
+      const d = dageTil(o.deadline);
+      const moede = o.dlSlags === "moede";
+      return el("span", { class: klasse + " c-dl" + (d < 0 ? " over" : d <= 7 ? " snart" : ""),
+        title: (moede ? "Næste møde · " : "") + langDato(o.deadline) + " · " + relativ(d) },
+        el("span", { class: "lang-tekst" }, (moede ? "📅 " : "") + kortDato(o.deadline)),
+        el("span", { class: "kort-tekst" }, dm(o.deadline)));
     }
-    gemAfventer();
-  }
-  async function gemStatus(nr, ny) {
-    const o = find(nr);
-    if (!o || statusId(o) === ny) return;
-    const foer = { status: o.status, droppet: o.droppet, lukket: o.lukket };
-    const navn = VALG.filter(function (v) { return v.id === ny; })[0].navn;
-    saetStatus(o, ny);
-    if (S.kilde === "eksempel") {
-      vis();
-      visBesked("Eksempel – ændringen gemmes ikke");
-      return;
-    }
-    S.afventer[nr] = { status: ny, tid: Date.now() };
-    gemAfventer();
-    vis();
-    visBesked("Gemmer …", false, true);
-    try {
-      const r = await fetch(MELLEMMAND, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },   // undgår ekstra CORS-forespørgsel
-        body: JSON.stringify({ nr: nr, status: ny })
-      });
-      const svar = await r.json();
-      if (!svar.ok) throw new Error(svar.fejl || "ukendt fejl");
-      visBesked("Gemt ✓ " + navn + ": " + o.titel);
-      setTimeout(function () { opdater(true); }, 6000);
-    } catch (e) {
-      const nu = find(nr);
-      if (nu) Object.assign(nu, foer);
-      delete S.afventer[nr];
-      gemAfventer();
-      vis();
-      const grund = e && e.message ? e.message : "prøv igen";
-      visBesked("Kunne ikke gemme – " + grund + (/[.?!]$/.test(grund) ? "" : "."), true);
-    }
-  }
-  let beskedTimer = null;
-  function visBesked(tekst, fejl, bliv) {
-    const b = $("besked");
-    b.textContent = tekst;
-    b.className = "besked" + (fejl ? " fejl" : "");
-    b.hidden = false;
-    clearTimeout(beskedTimer);
-    if (!bliv) beskedTimer = setTimeout(function () { b.hidden = true; }, fejl ? 8000 : 3500);
+    if (o.dlSlags === "moede") return el("span", { class: klasse + " c-dl tekst", title: "Næste møde – datoen er ikke sat endnu" },
+      el("span", { class: "lang-tekst" }, "📅 Næste møde"), el("span", { class: "kort-tekst" }, "møde"));
+    if (o.dlSlags === "tekst") return el("span", { class: klasse + " c-dl tekst", title: o.dlTekst }, o.dlTekst);
+    return el("span", { class: klasse + " c-dl ingen" }, "–");
   }
 
   // ------------------------------------------------------------------ tabellen
-  // Overskrifterne Emne, Person og Deadline kan klikkes for at sortere (ikke i tabellen med færdige)
   function hoved(lukkede) {
     const sorter = function (id, indhold) {
       if (lukkede) return indhold;
@@ -922,17 +1518,16 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     saetAdresse("sort", id === "deadline" ? null : id);
     vis();
   }
-  // Deadline: én lang liste. Person og emne: grupper med en overskrift, deadline inden for hver gruppe.
   function grupper(liste) {
     liste = liste.slice().sort(efterDeadline);
     if (S.sort === "deadline") return [{ navn: null, liste: liste }];
     const map = new Map();
     for (const o of liste) {
-      const navn = S.sort === "emne" ? o.emne.navn : (hvem(o).join(", ") || "Uden ansvarlig");
+      const navn = S.sort === "emne" ? o.emne.navn : hvem(o).join(", ");
       if (!map.has(navn)) map.set(navn, { navn: navn, emne: S.sort === "emne" ? o.emne : null, personer: o.personer, liste: [] });
       map.get(navn).liste.push(o);
     }
-    const sidst = ["Andet", "Hele bestyrelsen", "Uden ansvarlig"];
+    const sidst = ["Andet", PULJE];
     return Array.from(map.values()).sort(function (a, b) {
       return (sidst.indexOf(a.navn) - sidst.indexOf(b.navn)) || da(a.navn, b.navn);
     });
@@ -943,34 +1538,25 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
       ? el("span", { class: "prik", style: { "--c": "hsl(" + farve(g.navn) + " 60% 48%)" } }) : null;
     return el("div", { class: "gr", role: "row" },
       el("span", { role: "cell" },
-        g.emne ? el("span", { "aria-hidden": "true" }, g.emne.ikon) : prik,
-        g.navn, el("span", { class: "antal" }, g.liste.length),
+        g.emne ? el("span", { "aria-hidden": "true" }, g.emne.ikon) : g.navn === PULJE ? "🙋" : prik,
+        g.navn === PULJE ? PULJE + " – kan alle tage" : g.navn, el("span", { class: "antal" }, g.liste.length),
         over ? el("span", { class: "over" }, "· " + over + " over tid") : null));
   }
   function raekke(o) {
     const lukket = o.status === "faerdig";
-    let dl = el("span", { class: "c c-dl ingen", role: "cell" }, "–"), over = false;
-    if (lukket && o.lukket) {
-      dl = el("span", { class: "c c-dl", role: "cell" },
-        el("span", { class: "lang-tekst" }, kortDato(o.lukket)), el("span", { class: "kort-tekst" }, dm(o.lukket)));
-    } else if (!lukket && o.deadline) {
-      const d = dageTil(o.deadline);
-      over = d < 0;
-      dl = el("span", { class: "c c-dl" + (d < 0 ? " over" : d <= 7 ? " snart" : ""), role: "cell",
-        title: relativ(d) },
-        el("span", { class: "lang-tekst" }, kortDato(o.deadline)), el("span", { class: "kort-tekst" }, dm(o.deadline)));
-    }
+    const over = !lukket && o.deadline && dageTil(o.deadline) < 0;
     const navne = hvem(o);
     const kl = "rk" + (over ? " over" : "") + (lukket ? " lukket" : "") + (o.droppet ? " droppet" : "") +
-      (S.afventer[o.nr] ? " gemmer" : "");
+      (o.ny || o.venter ? " gemmer" : "");
     return el("div", { class: kl, role: "row", "data-nr": o.nr },
       el("span", { class: "c", role: "cell" },
-        el("button", { class: "aabn", type: "button", title: o.titel, onclick: function () { aabnOpgave(o.nr); } }, o.titel)),
+        el("button", { class: "aabn", type: "button", title: o.helTitel, onclick: function () { aabnOpgave(o.nr); } }, o.titel,
+          o.ny ? el("span", { class: "gemmer-tekst" }, o.net ? "venter på net" : "gemmes …") : null)),
       el("span", { class: "c c-emne", role: "cell", title: o.emne.navn },
         el("span", { class: "ikon", "aria-hidden": "true" }, o.emne.ikon), el("span", { class: "bred" }, o.emne.navn)),
-      el("span", { class: "c c-person" + (navne.length ? "" : " ingen"), role: "cell", title: navne.join(", ") || null },
-        navne.length ? navne.join(", ") : "–"),
-      dl,
+      el("span", { class: "c c-person" + (o.personer.length ? "" : " pulje-tekst"), role: "cell", title: navne.join(", ") },
+        o.personer.length ? navne.join(", ") : "🙋 " + PULJE),
+      dlCelle(o, "c"),
       el("span", { class: "c", role: "cell" },
         el("span", { class: "st " + statusKlasse(o), title: statusNavn(o) },
           el("span", { class: "prik" }), el("span", { class: "navn" }, statusNavn(o)))));
@@ -992,21 +1578,34 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
         return el("span", { class: STATUS[id].klasse }, el("span", { class: "prik" }), STATUS[id].navn);
       }));
   }
+  function puljeSektion(liste) {
+    return el("section", { class: "pulje", "aria-labelledby": "pulje-titel" },
+      el("h2", { class: "pulje-titel", id: "pulje-titel" }, "🙋 Kan alle tage", el("span", { class: "antal" }, liste.length)),
+      el("p", { class: "pulje-hjaelp" }, "Opgaver, der ligger hos hele bestyrelsen. Tag en, så bliver den din."),
+      el("div", { class: "pulje-liste" }, liste.map(function (o) {
+        return el("div", { class: "pr" + (o.ny || o.venter ? " gemmer" : ""), "data-nr": o.nr },
+          el("button", { class: "aabn", type: "button", title: o.helTitel, onclick: function () { aabnOpgave(o.nr); } }, o.titel),
+          dlCelle(o, ""),
+          el("button", { class: "tag-knap", type: "button", disabled: o.ny || o.venter || !kanRette(),
+            onclick: function () { tagOpgave(o.nr); } }, "🙋 Tag den"));
+      })));
+  }
   function tomTilstand(overskrift, tekst, medIgen) {
     return el("div", { class: "tomt" },
       el("h2", null, overskrift),
       el("p", null, tekst),
       el("div", { class: "knapper" },
         medIgen ? el("button", { class: "knap", type: "button", onclick: function () { opdater(true); } }, "Prøv igen") : null,
-        el("button", { class: "knap" + (medIgen ? " sekundaer" : ""), type: "button", onclick: visEksempel }, "Vis et eksempel"),
-        el("a", { class: "knap sekundaer", href: GH + "#readme", target: "_blank", rel: "noopener" }, "Sådan virker det")));
+        kanRette() && !medIgen ? el("button", { class: "knap", type: "button", onclick: function () { aabnNy(); } }, "＋ Tilføj den første") : null,
+        el("button", { class: "knap sekundaer", type: "button", onclick: visEksempel }, "Vis et eksempel")));
   }
 
   function tegnPersoner(aabne) {
     const boks = $("personer");
     boks.replaceChildren();
-    const navne = allePersoner();
+    let navne = allePersoner();
     if (S.person && !navne.some(function (n) { return lav(n) === lav(S.person); })) navne.push(S.person);
+    if (S.mig) navne = [S.mig].concat(navne.filter(function (n) { return lav(n) !== lav(S.mig); }));
     const knap = function (navn, tekst, antal) {
       return el("button", { type: "button", class: "vaelg", "aria-pressed": String(navn === S.person),
         style: navn ? { "--h": farve(navn) } : null, onclick: function () { vaelgPerson(navn); } },
@@ -1014,9 +1613,9 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     };
     boks.append(knap(null, "Alle", aabne.length));
     for (const n of navne) {
-      boks.append(knap(n, n, aabne.filter(function (o) { return harPerson(o, n); }).length));
+      boks.append(knap(n, n + (S.mig && lav(n) === lav(S.mig) ? " (mig)" : ""),
+        aabne.filter(function (o) { return egenPerson(o, n); }).length));
     }
-    // På mobil står navnene på én linje, man kan stryge i – sørg for, at det valgte navn kan ses
     const valgt = boks.querySelector('[aria-pressed="true"]');
     if (valgt && boks.scrollWidth > boks.clientWidth) {
       boks.scrollLeft = Math.max(0, valgt.offsetLeft - boks.offsetLeft - (boks.clientWidth - valgt.offsetWidth) / 2);
@@ -1032,10 +1631,61 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     if (over) p.append(el("span", { class: "over" }, over + " over tid"));
     if (snart) p.append(el("span", null, snart + " inden for 7 dage"));
     if (S.person && S.kilde !== "eksempel") {
-      p.append(el("button", { class: "lille-knap", type: "button", onclick: kopierPersonLink, id: "link-knap" },
+      p.append(el("button", { class: "lille-knap", type: "button", onclick: kopierPersonLink },
         "🔗 Kopiér " + ejefald(S.person) + " link"));
     }
-    p.hidden = false;
+  }
+  function tegnHej() {
+    const h = $("hej");
+    h.replaceChildren();
+    if (S.mig) {
+      h.append("Hej " + S.mig + " 👋 · ", el("button", { class: "linkknap", type: "button", onclick: function () { efterHvem = null; tegnHvem(); aabnArk("ark-hvem"); } }, "ikke dig?"));
+    } else if (kanRette()) {
+      h.append(el("button", { class: "linkknap", type: "button", onclick: function () { efterHvem = null; tegnHvem(); aabnArk("ark-hvem"); } }, "Vælg dit navn"),
+        " – så kan du tilføje og tage opgaver.");
+    }
+  }
+  function tegnMoedeInfo() {
+    const b = $("moede-info");
+    b.replaceChildren();
+    const n = naesteMoede();
+    const ret = kanRette() ? el("button", { class: "linkknap", type: "button", onclick: aabnMoedeArk }, n ? "ret" : "sæt dato") : null;
+    if (n) {
+      const d = dageTil(n);
+      b.append(el("span", { class: "ikon", "aria-hidden": "true" }, "📅"),
+        el("span", null, "Næste møde ", el("strong", null, moedeNavn(n)), " ", el("span", { class: "naar" }, "· " + relativ(d) + " "), ret));
+    } else {
+      b.append(el("span", { class: "ikon", "aria-hidden": "true" }, "📅"),
+        el("span", null, el("span", { class: "naar" }, "Næste møde er ikke sat · "), ret));
+    }
+  }
+  function tegnFaner() {
+    for (const k of document.querySelectorAll(".faner [data-visning]")) {
+      k.setAttribute("aria-selected", String(k.dataset.visning === S.visning));
+    }
+    const mig = S.mig && naesteMoede() && dageTil(naesteMoede()) <= 7 ? rundeListe().length : 0;
+    const fane = $("fane-moede");
+    fane.replaceChildren.apply(fane, ["Til mødet", mig ? el("span", { class: "prikken", title: mig + " af dine opgaver mangler status" }, mig) : null].filter(Boolean));
+    $("v-opgaver").hidden = S.visning !== "opgaver";
+    $("v-moede").hidden = S.visning !== "moede";
+  }
+  function tegnSkub() {
+    const s = $("skub");
+    s.replaceChildren();
+    s.hidden = true;
+    if (!S.mig || !kanRette() || S.visning === "moede") return;     // Til mødet har sin egen knap
+    const n = naesteMoede();
+    if (!n) return;
+    const dage = dageTil(n);
+    if (dage < 0 || dage > 7) return;
+    const liste = rundeListe();
+    if (!liste.length) return;
+    s.append(el("div", { class: "skub" },
+      el("span", null, "📅 ", el("strong", null, "Mødet er " + naarTekst(dage, n)), " – " +
+        (liste.length === 1 ? "1 af dine opgaver mangler" : liste.length + " af dine opgaver mangler") +
+        " en kort status til de andre."),
+      el("button", { class: "knap", type: "button", onclick: startRunde }, "Giv status →")));
+    s.hidden = false;
   }
   function tegnFod() {
     const f = $("fod");
@@ -1043,149 +1693,391 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
       onclick: function () { opdater(true); } }, S.henter ? "Henter …" : "Opdater");
     let tid = null;
     if (S.kilde === "eksempel") tid = "Eksempeldata – ikke rigtige opgaver";
-    else if (S.hentet) tid = "Hentet " + (dageTil(S.hentet) === 0 ? "kl. " : kortDato(S.hentet) + " kl. ") + klokken(S.hentet);
+    else if (S.hentet) tid = "Hentet " + (dageTil(S.hentet) === 0 ? "kl. " : kortDato(S.hentet) + " kl. ") + klokken(S.hentet) +
+      (S.kilde === "mellemmand" ? " via mellemmanden" : "");
+    const venter = S.udbakke.length ? el("span", null, "⏳ " + flertal(S.udbakke.length, "ændring venter", "ændringer venter") + " på at blive gemt") : null;
     f.replaceChildren.apply(f, [
-      el("span", null, "Opgaverne ligger som issues i ",
-        el("a", { href: GH + "/issues", target: "_blank", rel: "noopener" }, "github.com/" + REPO),
-        MELLEMMAND ? ". Formanden opretter dem – alle kan skifte status." : " og vedligeholdes af formanden."),
-      tid ? el("span", null, tid) : null,
-      opdKnap].filter(Boolean));
+      el("span", null, "Opgaverne gemmes i ", el("a", { href: GH + "/issues", target: "_blank", rel: "noopener" }, "GitHub"),
+        kanRette() ? " – alle i bestyrelsen kan tilføje og rette her uden login." : "."),
+      venter, tid ? el("span", null, tid) : null, opdKnap].filter(Boolean));
   }
 
   function vis() {
-    // Kanonisk stavning af det valgte navn (fx ?person=emma -> Emma)
     if (S.person) {
       const kendt = allePersoner().filter(function (n) { return lav(n) === lav(S.person); })[0];
       if (kendt) S.person = kendt;
     }
     fordelFarver(allePersoner().concat(S.person ? [S.person] : []));
-    document.title = (S.person ? ejefald(S.person) + " opgaver" : "Bestyrelsens opgaver") + " · Aalborg Volley";
+    document.title = (S.visning === "moede" ? "Til mødet" : S.person ? ejefald(S.person) + " opgaver" : "Bestyrelsens opgaver") + " · Aalborg Volley";
+    tegnHej();
+    tegnMoedeInfo();
+    tegnFaner();
+    tegnSkub();
     tegnFod();
+    $("ny-top").hidden = !kanRette();
+    $("fab").hidden = !kanRette();
     const main = $("indhold");
     main.replaceChildren();
     const harData = S.opgaver.length > 0;
-    const kanVise = harData || S.kilde === "github";
+    const kanVise = harData || S.kilde === "github" || S.kilde === "mellemmand" || S.kilde === "eksempel";
     $("navnevalg").hidden = !harData;
     $("linje").hidden = !harData;
     $("vaerktoejer").hidden = !kanVise;
+    if (S.visning === "moede") tegnMoedeVisning();
     if (!harData) {
-      if (S.kilde === "github") {
-        main.append(tomTilstand("Ingen opgaver endnu",
-          "Når formanden opretter den første opgave som issue i GitHub, dukker den op her."));
+      if (kanVise) {
+        main.append(tomTilstand("Ingen opgaver endnu", "Tilføj en opgave med knappen, eller sæt tabellen fra referatet ind efter mødet."));
       } else if (!S.henter) {
-        main.append(tomTilstand("Opgaverne kunne ikke hentes",
-          S.fejl ? fejlTekst(S.fejl) : "Der er ikke hentet nogen opgaver endnu.", true));
+        main.append(tomTilstand("Opgaverne kunne ikke hentes", S.fejl ? fejlTekst(S.fejl) : "Der er ikke hentet nogen opgaver endnu.", true));
       } else {
-        main.append(el("p", { class: "henter" }, "Henter opgaver fra GitHub …"));
+        main.append(el("p", { class: "henter" }, "Henter opgaver …"));
       }
-      lukDetaljeHvisVaek();
+      opdaterAabne();
       return;
     }
     const alleAabne = S.opgaver.filter(function (o) { return o.status !== "faerdig"; });
     tegnPersoner(alleAabne);
-    const synlige = S.person ? S.opgaver.filter(function (o) { return harPerson(o, S.person); }) : S.opgaver;
+    const synlige = S.person ? S.opgaver.filter(function (o) { return egenPerson(o, S.person); }) : S.opgaver;
     const aabne = synlige.filter(function (o) { return o.status !== "faerdig"; }).sort(efterDeadline);
     const faerdige = synlige.filter(erFaerdigNylig).sort(function (a, b) { return b.lukket - a.lukket; });
     tegnOverblik(aabne);
     for (const k of $("sortering").querySelectorAll("button[data-sort]")) {
       k.setAttribute("aria-pressed", String(k.dataset.sort === S.sort));
     }
-
     const tom = el("div", { class: "tom-raekke" },
       el("strong", null, S.person ? "Ingen åbne opgaver til " + S.person + " 🎉" : "Ingen åbne opgaver 🎉"),
-      S.person ? "Vælg Alle for at se resten af bestyrelsens opgaver." : null);
+      S.person ? "Tag en af dem, alle kan tage – eller tilføj en ny." : null);
     main.append(tabel(grupper(aabne), false, tom), forklaring());
+    if (S.person) {
+      const pulje = alleAabne.filter(function (o) { return !o.personer.length; }).sort(efterDeadline);
+      if (pulje.length) main.append(puljeSektion(pulje));
+    }
     if (faerdige.length) {
       main.append(el("button", { class: "faerdig-knap", type: "button", "aria-expanded": String(S.visFaerdige),
         onclick: function () { S.visFaerdige = !S.visFaerdige; vis(); } },
         (S.visFaerdige ? "▾ Skjul færdige" : "▸ Vis færdige") + " (" + faerdige.length + ")"));
       if (S.visFaerdige) main.append(tabel([{ navn: null, liste: faerdige }], true, null));
     }
-    if ($("referat").open) tegnReferat();
-    if ($("ny").open) tegnNyPersoner();
-    if (S.aaben != null) { if (find(S.aaben)) tegnDetalje(find(S.aaben)); else lukDetaljeHvisVaek(); }
+    opdaterAabne();
+  }
+  function opdaterAabne() {
+    if ($("hjem").open) tegnHjem();
+    if (S.aaben != null && $("detalje").open) { const o = find(S.aaben); if (o) tegnDetalje(o); else lukArk("detalje"); }
   }
 
-  // ------------------------------------------------------------------ opgaven åbnet
+  // ------------------------------------------------------------------ ark
+  function aabnArk(id) {
+    const d = $(id);
+    if (!d.open) { if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", ""); }
+  }
+  function lukArk(id) {
+    const d = $(id);
+    if (d.open) { if (typeof d.close === "function") d.close(); else d.removeAttribute("open"); }
+  }
+
+  // ---- Hvem er du?
+  function tegnHvem() {
+    const boks = $("hvem-chips");
+    boks.replaceChildren();
+    for (const n of allePersoner()) {
+      boks.append(el("button", { type: "button", class: "vaelg", "aria-pressed": String(lav(n) === lav(S.mig || "")),
+        style: { "--h": farve(n) }, onclick: function () {
+          saetMig(n);
+          lukArk("ark-hvem");
+          vis();
+          const fn = efterHvem; efterHvem = null;
+          if (fn) fn();
+        } }, el("span", { class: "prik" }), n));
+    }
+    if (!allePersoner().length) boks.append(el("p", { class: "hjaelp" }, "Bestyrelsen står ikke i config.js endnu."));
+  }
+
+  // ---- Ny opgave / ret opgave: hvad, hvem, hvornår
+  const ny = { o: null, hvem: [], naar: "ingen", dato: "" };
+  function aabnNy(o) {
+    if (!kanRette()) return;
+    ny.o = o || null;
+    if (o) {
+      ny.hvem = o.personer.length ? o.personer.slice() : [PULJE];
+      ny.naar = o.dlSlags === "moede" ? "moede" : o.dlSlags === "dato" && o.deadline ? "dato" : o.dlSlags === "tekst" ? "behold" : "ingen";
+      ny.dato = o.deadline && o.dlSlags === "dato" ? iso(o.deadline) : "";
+    } else {
+      ny.hvem = [S.mig || PULJE];
+      ny.naar = "ingen";
+      ny.dato = "";
+    }
+    $("ny-titel").textContent = o ? "Ret opgaven" : "Ny opgave";
+    $("ny-gem").textContent = o ? "Gem ændringer" : "Tilføj opgave";
+    $("ny-under").textContent = o ? "Ændringen kan ses af alle med det samme." : "Den ligger klar til hele bestyrelsen med det samme.";
+    $("ny-hvad").value = o ? o.helTitel : "";
+    $("ny-fejl").hidden = true;
+    tegnNyValg();
+    if (o) lukArk("detalje");
+    aabnArk("ark-ny");
+    const inp = $("ny-hvad");
+    inp.focus();
+    if (o) inp.setSelectionRange(inp.value.length, inp.value.length);
+  }
+  function tegnNyValg() {
+    const hb = $("ny-hvem");
+    hb.replaceChildren();
+    const valgt = function (n) { return ny.hvem.some(function (x) { return lav(x) === lav(n); }); };
+    let navne = allePersoner();
+    if (S.mig) navne = [S.mig].concat(navne.filter(function (n) { return lav(n) !== lav(S.mig); }));
+    for (const n of navne) {
+      hb.append(el("button", { type: "button", class: "vaelg", "aria-pressed": String(valgt(n)), style: { "--h": farve(n) },
+        onclick: function () {
+          ny.hvem = ny.hvem.filter(function (x) { return !erPuljeLabel(x); });
+          ny.hvem = valgt(n) ? ny.hvem.filter(function (x) { return lav(x) !== lav(n); }) : ny.hvem.concat([n]);
+          if (!ny.hvem.length) ny.hvem = [PULJE];
+          tegnNyValg();
+        } }, el("span", { class: "prik" }), n + (S.mig && lav(n) === lav(S.mig) ? " (mig)" : "")));
+    }
+    hb.append(el("button", { type: "button", class: "vaelg pulje-valg", "aria-pressed": String(valgt(PULJE)),
+      title: "Ingen bestemt – alle i bestyrelsen kan tage den",
+      onclick: function () { ny.hvem = [PULJE]; tegnNyValg(); } }, "🙋 " + PULJE + " (alle kan tage den)"));
+
+    const nb = $("ny-naar");
+    nb.replaceChildren();
+    const valg = [["ingen", "Ingen"], ["asap", "ASAP"], ["moede", "Næste møde"], ["dato", "📅 Vælg dato"]];
+    if (ny.o && ny.o.dlSlags === "tekst") valg.splice(1, 0, ["behold", ny.o.dlTekst]);
+    for (const v of valg) {
+      nb.append(el("button", { type: "button", class: "vaelg", "aria-pressed": String(ny.naar === v[0]),
+        onclick: function () {
+          ny.naar = v[0];
+          tegnNyValg();
+          if (v[0] === "dato") {
+            const inp = $("ny-dato");
+            try { if (typeof inp.showPicker === "function") inp.showPicker(); else inp.focus(); } catch (e) { inp.focus(); }
+          }
+        } }, v[1]));
+    }
+    const dInp = $("ny-dato");
+    dInp.hidden = ny.naar !== "dato";
+    if (dInp.value !== ny.dato) dInp.value = ny.dato;
+    const hint = $("ny-hint");
+    hint.replaceChildren();
+    if (ny.naar === "asap") {
+      const d = plusDage(idag(), ASAP_DAGE);
+      hint.append("Deadline ", el("strong", null, langDato(d)), " – om " + ASAP_DAGE + " dage.");
+    } else if (ny.naar === "moede") {
+      const m = ny.o && ny.o.dlSlags === "moede" ? ny.o.deadline : moedeEfter(idag());
+      if (m) hint.append("Deadline følger næste møde: ", el("strong", null, moedeNavn(m)), ".");
+      else hint.append("Næste møde er ikke sat endnu – deadline følger datoen, så snart den bliver sat.");
+    } else if (ny.naar === "dato") {
+      const d = isoTilDato(ny.dato);
+      if (d) hint.append("Deadline ", el("strong", null, langDato(d)), " · " + relativ(dageTil(d)) + ".");
+      else hint.append("Vælg en dato.");
+    } else if (ny.naar === "behold") {
+      hint.append("Beholder “" + ny.o.dlTekst + "”.");
+    } else {
+      hint.append("Ingen deadline.");
+    }
+  }
+  function nyDeadline() {
+    if (ny.naar === "asap") return iso(plusDage(idag(), ASAP_DAGE));
+    if (ny.naar === "moede") return "moede";
+    if (ny.naar === "dato") return ny.dato;
+    return "";
+  }
+  function gemNy(ev) {
+    ev.preventDefault();
+    const hvad = $("ny-hvad").value.replace(/\s+/g, " ").trim();
+    const fejl = $("ny-fejl");
+    fejl.hidden = true;
+    if (!hvad) { fejl.textContent = "Skriv, hvad opgaven går ud på."; fejl.hidden = false; $("ny-hvad").focus(); return; }
+    if (ny.naar === "dato" && !isoTilDato(ny.dato)) { fejl.textContent = "Vælg en dato – eller vælg Ingen."; fejl.hidden = false; return; }
+    kraevMig(function () {
+      const deadline = nyDeadline();
+      if (!ny.o) {
+        send({ handling: "opret", hvad: hvad, hvem: ny.hvem.slice(), deadline: deadline }, "Tilføjet ✓ " + hvad);
+      } else {
+        const o = ny.o, d = { handling: "ret", nr: o.nr };
+        if (hvad !== o.helTitel) d.hvad = hvad;
+        const foerDl = o.dlSlags === "moede" ? "moede" : o.dlSlags === "dato" && o.deadline ? iso(o.deadline) : "";
+        if (ny.naar !== "behold" && deadline !== foerDl) d.deadline = deadline;
+        const foerHvem = hvem(o).map(lav).sort().join("|");
+        if (ny.hvem.map(lav).sort().join("|") !== foerHvem) d.hvem = ny.hvem.slice();
+        if (Object.keys(d).length > 2) send(d, "Gemt ✓ " + hvad);
+      }
+      lukArk("ark-ny");
+    });
+  }
+
+  // ---- Opgaven åbnet
   function aabnOpgave(nr) {
     const o = find(nr);
     if (!o) return;
-    S.aaben = nr;
+    if (S.aaben !== o.nr) { S.udfold = null; S.visLog = false; }
+    S.aaben = o.nr;
     tegnDetalje(o);
-    const d = $("detalje");
-    if (!d.open) {
-      if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", "");
+    aabnArk("detalje");
+    if (!o.ny) saetAdresse("opgave", String(o.nr));
+  }
+  function logTekst(e) {
+    const t = e.tekst;
+    const med = function (s) { return t ? [s + ": ", el("span", { class: "citat" }, t)] : s; };
+    switch (e.type) {
+      case "Tilføjet": return "tilføjede opgaven";
+      case "Opdatering": return ["skrev: ", el("span", { class: "citat" }, t)];
+      case "Færdig": return med("meldte den færdig ✓");
+      case "Droppet": return med("droppede den");
+      case "I gang": return med("satte den i gang");
+      case "Venter": return med("satte den til Venter");
+      case "Next up": return med("satte den til Next up");
+      case "Ikke startet": return med("satte den til Ikke startet");
+      case "Tog opgaven": return "tog opgaven 🙋";
+      case "Lagt tilbage til bestyrelsen": return "lagde den tilbage til bestyrelsen";
+      case "Sprang fra opgaven": return "sprang fra opgaven";
+      case "Rettet": return med("rettede opgaven");
+      default: return med(e.type);
     }
-    saetAdresse("opgave", String(nr));
   }
-  function lukDetalje() {
-    const d = $("detalje");
-    if (d.open) { if (typeof d.close === "function") d.close(); else d.removeAttribute("open"); }
+  function svarBoks(o, slags) {
+    const droppe = slags === "droppet";
+    const ta = el("textarea", { class: "auto", id: "svar-tekst", rows: "1", maxlength: "500", "data-noegle": "svar-" + slags,
+      placeholder: droppe ? "Fx: Ikke relevant længere" : "Fx: Hallen er booket 12/12 kl. 18–24" });
+    const gem = el("button", { class: "knap" + (droppe ? "" : " ok"), type: "button", disabled: true }, droppe ? "Drop opgaven" : "Gem som færdig ✓");
+    const opd = function () { gem.disabled = !ta.value.trim(); ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; };
+    ta.addEventListener("input", opd);
+    gem.addEventListener("click", function () {
+      const t = ta.value.trim();
+      if (!t) return;
+      lukArk("detalje");
+      gemStatus(o.nr, slags, t);
+    });
+    const hurtig = droppe ? ["Ikke relevant længere", "Klares på en anden måde", "Oprettet ved en fejl"] : ["Klaret som aftalt 👍"];
+    return el("div", { class: "svar-boks" },
+      el("label", { for: "svar-tekst" }, droppe ? "Hvorfor droppes den?" : "Hvad blev det til?",
+        el("span", { class: "hint", style: { display: "block", "font-weight": "500" } }, "Står i opfølgningen til næste møde, så de andre ved, hvad det endte med.")),
+      el("div", { class: "hurtig" }, hurtig.map(function (h) {
+        return el("button", { type: "button", onclick: function () { ta.value = h; opd(); ta.focus(); } }, h);
+      })),
+      ta,
+      el("div", { class: "handling", style: { "margin-top": "10px" } }, gem,
+        el("button", { class: "knap sekundaer", type: "button", onclick: function () { S.udfold = null; tegnDetalje(o); } }, "Fortryd")));
   }
-  function lukDetaljeHvisVaek() { if (S.aaben != null) lukDetalje(); }
   function tegnDetalje(o) {
-    const n = delNoter(o.noter);
-    const titel = n.hel || o.titel;
     const fakta = el("dl", { class: "d-fakta" });
     const navne = hvem(o);
+    const laast = o.ny || o.venter;
     fakta.append(el("dt", null, "Emne"), el("dd", null, el("span", null, o.emne.ikon + " " + o.emne.navn),
-      o.emneGaet ? el("span", { class: "emne-gaet", title: "Forkert? Giv opgaven en label i GitHub med det rigtige emne, fx Økonomi." },
-        "gættet ud fra teksten") : null));
-    fakta.append(el("dt", null, "Person"), el("dd", null,
-      navne.length ? navne.map(function (p) { return p === "Hele bestyrelsen" ? el("span", { class: "chip alle" }, p) : personChip(p); })
-        : el("span", { class: "chip" }, "Ingen ansvarlig")));
+      o.emneGaet ? el("span", { class: "emne-gaet" }, "gættet ud fra teksten") : null));
+    fakta.append(el("dt", null, "Hvem"), el("dd", null, navne.map(personChip)));
     if (o.deadline) {
       const d = dageTil(o.deadline);
       const aaben = o.status !== "faerdig";
       fakta.append(el("dt", null, "Deadline"), el("dd", null,
         el("span", { class: aaben && d < 0 ? "over" : aaben && d <= 7 ? "snart" : null },
-          langDato(o.deadline) + (aaben ? " · " + relativ(d) : ""))));
+          (o.dlSlags === "moede" ? "Næste møde · " : "") + langDato(o.deadline) + (aaben ? " · " + relativ(d) : ""))));
     } else {
-      fakta.append(el("dt", null, "Deadline"), el("dd", null, el("span", { class: "chip" }, "Ingen")));
+      fakta.append(el("dt", null, "Deadline"), el("dd", null, el("span", { class: "chip" },
+        o.dlSlags === "moede" ? "Næste møde (dato ikke sat)" : o.dlSlags === "tekst" ? o.dlTekst : "Ingen")));
     }
     fakta.append(el("dt", null, "Status"), el("dd", null,
       el("span", { class: "st " + statusKlasse(o) }, el("span", { class: "prik" }), statusNavn(o) +
         (o.status === "faerdig" && o.lukket ? " " + kortDato(o.lukket) : "")),
-      S.afventer[o.nr] ? el("span", { class: "chip" }, "gemmer …") : null));
-    if (n.kilde) fakta.append(el("dt", null, "Fra"), el("dd", null, n.kilde));
+      laast ? el("span", { class: "chip" }, o.net ? "venter på net" : "gemmes …") : null));
+    if (o.kilde) fakta.append(el("dt", null, "Fra"), el("dd", null, o.kilde));
     if (o.tags.length) fakta.append(el("dt", null, "Labels"), el("dd", null, o.tags.map(function (t) { return el("span", { class: "chip" }, t); })));
 
-    // Status: knapper, der gemmer med det samme (gennem mellemmanden)
-    const nu = statusId(o);
-    let status;
-    if (kanRette()) {
-      const knapper = el("div", { class: "st-knapper", role: "group", "aria-label": "Skift status" },
-        ["ny", "next", "igang", "venter", "faerdig"].map(function (id) {
-          return el("button", { type: "button", class: "st-knap " + STATUS[id].klasse, "aria-pressed": String(nu === id),
-            disabled: !!S.afventer[o.nr],
-            onclick: function () { vaelgStatus(o.nr, id); } },
-            el("span", { class: "prik" }), id === "faerdig" ? "Færdig ✓" : STATUS[id].navn);
-        }));
-      status = el("section", { class: "d-afsnit" }, el("h3", null, "Skift status"), knapper,
-        el("button", { type: "button", class: "drop", "aria-pressed": String(nu === "droppet"), disabled: !!S.afventer[o.nr],
-          onclick: function () { vaelgStatus(o.nr, "droppet"); } },
-          nu === "droppet" ? "Droppet" : "Drop opgaven – den skal ikke laves alligevel"));
-    } else {
-      status = el("section", { class: "d-afsnit" }, el("h3", null, "Skift status"),
-        el("p", { class: "laast" }, "Status kan skiftes i GitHub ",
-          o.url ? el("a", { href: o.url, target: "_blank", rel: "noopener" }, "under Labels ↗") : null, "."));
+    const dele = [];
+    // Kan alle tage: Jeg tager den
+    if (o.status !== "faerdig" && !o.personer.length && kanRette()) {
+      dele.push(el("div", { class: "d-tag" }, el("span", null, "🙋 Den ligger hos hele bestyrelsen – alle kan tage den."),
+        el("button", { class: "tag-knap", type: "button", disabled: laast, onclick: function () { lukArk("detalje"); tagOpgave(o.nr); } }, "Jeg tager den")));
     }
-    const noter = n.noter ? el("section", { class: "d-afsnit" }, el("h3", null, "Noter"),
-      el("p", { class: "d-noter" }, medLinks(n.noter))) : null;
+    // Resultat (færdige)
+    if (o.status === "faerdig") {
+      if (o.resultat) dele.push(el("section", { class: "d-afsnit" }, el("h3", null, o.droppet ? "Hvorfor droppet" : "Resultat"),
+        el("p", { class: "resultat" }, medLinks(o.resultat))));
+      else if (kanRette() && !laast) dele.push(el("section", { class: "d-afsnit" }, svarBoks(o, o.droppet ? "droppet" : "faerdig")));
+    }
+    // Status
+    const nu = statusId(o);
+    if (kanRette()) {
+      if (S.udfold && o.status !== "faerdig") {
+        dele.push(el("section", { class: "d-afsnit" }, svarBoks(o, S.udfold)));
+      } else {
+        const knapper = el("div", { class: "st-knapper", role: "group", "aria-label": "Skift status" },
+          ["ny", "next", "igang", "venter", "faerdig"].map(function (id) {
+            return el("button", { type: "button", class: "st-knap " + STATUS[id].klasse, "aria-pressed": String(nu === id),
+              disabled: laast, onclick: function () { vaelgStatus(o, id); } },
+              el("span", { class: "prik" }), id === "faerdig" ? "Færdig ✓" : STATUS[id].navn);
+          }));
+        dele.push(el("section", { class: "d-afsnit" }, el("h3", null, "Skift status"), knapper,
+          el("button", { type: "button", class: "drop", "aria-pressed": String(nu === "droppet"), disabled: laast,
+            onclick: function () { vaelgStatus(o, "droppet"); } },
+            nu === "droppet" ? "Droppet" : "Drop opgaven – den skal ikke laves alligevel")));
+      }
+      // Opdatering til de andre
+      if (o.status !== "faerdig" && !S.udfold) {
+        const ta = el("textarea", { class: "auto", rows: "1", maxlength: "500", disabled: laast, "data-noegle": "opdatering",
+          placeholder: "Fx: Venter svar fra kommunen", "aria-label": "Skriv en opdatering til de andre" });
+        const gem = el("button", { class: "knap", type: "button", disabled: true }, "Gem");
+        ta.addEventListener("input", function () { gem.disabled = !ta.value.trim(); ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; });
+        gem.addEventListener("click", function () {
+          const t = ta.value.trim();
+          if (!t) return;
+          kraevMig(function () { ta.value = ""; send({ handling: "opdatering", nr: o.nr, tekst: t }, "Opdatering gemt ✓"); });
+        });
+        dele.push(el("section", { class: "d-afsnit" }, el("h3", null, "Skriv en opdatering til de andre"),
+          el("div", { class: "skriv" }, ta, gem)));
+      }
+    } else {
+      dele.push(el("section", { class: "d-afsnit" }, el("h3", null, "Skift status"),
+        el("p", { class: "laast" }, "Status kan skiftes i GitHub ",
+          o.url ? el("a", { href: o.url, target: "_blank", rel: "noopener" }, "under Labels ↗") : null, ".")));
+    }
+    if (o.noter) dele.push(el("section", { class: "d-afsnit" }, el("h3", null, "Noter"), el("p", { class: "d-noter" }, medLinks(o.noter))));
+    // Logbogen
+    if (o.log.length) {
+      const poster = o.log.slice().reverse();
+      const vis_ = S.visLog ? poster : poster.slice(0, 4);
+      dele.push(el("section", { class: "d-afsnit" }, el("h3", null, "Historik"),
+        el("ol", { class: "log" }, vis_.map(function (e) {
+          return el("li", null, el("span", { class: "log-dato" }, e.datoTekst), el("span", null, el("b", null, e.af), " ", logTekst(e)));
+        })),
+        poster.length > 4 && !S.visLog ? el("button", { class: "log-mere", type: "button", onclick: function () { S.visLog = true; tegnDetalje(o); } },
+          "Vis alle " + poster.length) : null));
+    }
     const fod = el("div", { class: "d-fod" },
-      el("span", null, o.url ? el("a", { href: o.url, target: "_blank", rel: "noopener" }, "Åbn i GitHub ↗") : "Eksempel",
-        " – ret titel, person eller deadline"),
-      el("button", { type: "button", class: "linkknap", onclick: function (ev) { kopierOpgaveLink(ev, o.nr); } }, "🔗 Kopiér link"));
+      el("span", { class: "venstre" },
+        kanRette() && !laast ? el("button", { type: "button", class: "linkknap", onclick: function () { aabnNy(o); } }, "✏️ Ret opgaven") : null,
+        kanRette() && !laast && egenPerson(o, S.mig) && o.status !== "faerdig"
+          ? el("button", { type: "button", class: "linkknap", onclick: function () { lukArk("detalje"); slipOpgave(o.nr); } }, "Læg den tilbage til bestyrelsen") : null),
+      el("span", { class: "venstre" },
+        !o.ny ? el("button", { type: "button", class: "linkknap", onclick: function (ev) { kopierOpgaveLink(ev, o.nr); } }, "🔗 Kopiér link") : null,
+        o.url ? el("a", { href: o.url, target: "_blank", rel: "noopener" }, "GitHub ↗") : null));
     const inner = $("d-inner");
+    // Tekst, man er ved at skrive, må ikke forsvinde, når siden henter nyt i baggrunden
+    const bevar = {};
+    if (inner.dataset.nr === String(o.nr)) {
+      for (const t of inner.querySelectorAll("textarea[data-noegle]")) {
+        bevar[t.dataset.noegle] = { v: t.value, fokus: document.activeElement === t, pos: t.selectionStart };
+      }
+    }
+    inner.dataset.nr = String(o.nr);
     inner.replaceChildren.apply(inner, [
-      el("div", { class: "d-hoved" },
-        el("h2", { id: "d-titel" }, titel),
-        el("button", { type: "button", class: "luk", "aria-label": "Luk", onclick: lukDetalje }, "×")),
-      fakta, status, noter, fod].filter(Boolean));
+      el("div", { class: "ark-hoved" },
+        el("h2", { id: "d-titel" }, o.helTitel),
+        el("button", { type: "button", class: "luk", "aria-label": "Luk", onclick: function () { lukArk("detalje"); } }, "×")),
+      fakta].concat(dele, [fod]));
+    for (const t of inner.querySelectorAll("textarea[data-noegle]")) {
+      const b = bevar[t.dataset.noegle];
+      if (!b || !b.v) continue;
+      t.value = b.v;
+      t.dispatchEvent(new Event("input"));
+      if (b.fokus) { t.focus(); try { t.setSelectionRange(b.pos, b.pos); } catch (e) { /* ligegyldigt */ } }
+    }
   }
-  function vaelgStatus(nr, id) {
-    lukDetalje();                    // tilbage til tabellen – beskeden nederst viser, at det er gemt
-    gemStatus(nr, id);
+  function vaelgStatus(o, id) {
+    if (id === statusId(o)) return;
+    if (id === "faerdig" || id === "droppet") {      // spørg om resultatet, så de andre får det at vide
+      kraevMig(function () { S.udfold = id; tegnDetalje(o); aabnArk("detalje"); const t = $("svar-tekst"); if (t) t.focus(); });
+      return;
+    }
+    kraevMig(function () { lukArk("detalje"); gemStatus(o.nr, id, ""); });
   }
   function saetAdresse(noegle, vaerdi) {
     try {
@@ -1195,21 +2087,242 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     } catch (e) { /* fx åbnet som lokal fil */ }
   }
 
-  // ------------------------------------------------------------------ valg
+  // ---- Næste møde
+  function aabnMoedeArk() {
+    kraevMig(function () {
+      const n = naesteMoede();
+      $("moede-dato").value = n ? iso(n) : "";
+      const m = n && /kl\.?\s*(\d{1,2})(?:[.:](\d{2}))?/i.exec(S.moedeTekst[iso(n)] || "");
+      $("moede-tid").value = m ? ("0" + m[1]).slice(-2) + ":" + (m[2] || "00") : "";
+      $("moede-aflys").hidden = !n;
+      $("moede-fejl").hidden = true;
+      aabnArk("ark-moede");
+    });
+  }
+  function gemMoede(ev) {
+    ev.preventDefault();
+    const d = isoTilDato($("moede-dato").value);
+    if (!d) { $("moede-fejl").textContent = "Vælg en dato."; $("moede-fejl").hidden = false; return; }
+    const n = naesteMoede();
+    send({ handling: "moede", dato: iso(d), tid: $("moede-tid").value || "", erstat: n ? iso(n) : "" }, "📅 Næste møde: " + langDato(d));
+    lukArk("ark-moede");
+  }
+
+  // ---- Statusrunde før mødet
+  const runde = { liste: [], i: 0, valg: null, gemt: 0 };
+  function startRunde() {
+    kraevMig(function () {
+      runde.liste = rundeListe().map(function (o) { return o.nr; });
+      runde.i = 0;
+      runde.gemt = 0;
+      runde.valg = null;
+      tegnRunde();
+      aabnArk("ark-runde");
+    });
+  }
+  function tegnRunde() {
+    const inner = $("runde-inner");
+    const n = naesteMoede();
+    const hovedet = el("div", { class: "ark-hoved" }, el("h2", { id: "runde-titel" }, n ? "Status før mødet " + kortDato(n) : "Status til de andre"),
+      el("button", { type: "button", class: "luk", "aria-label": "Luk", onclick: function () { lukArk("ark-runde"); } }, "×"));
+    if (runde.i >= runde.liste.length) {
+      inner.replaceChildren(hovedet, el("div", { class: "runde-slut" },
+        el("p", { class: "stor-ikon" }, "🎉"),
+        el("p", null, el("strong", null, runde.gemt ? "Tak – du er klar til mødet." : "Der er ikke flere at give status på.")),
+        el("p", { class: "hjaelp" }, "De andre kan se det under “Til mødet”."),
+        el("button", { class: "knap", type: "button", onclick: function () { lukArk("ark-runde"); } }, "Luk")));
+      return;
+    }
+    const o = find(runde.liste[runde.i]);
+    if (!o) { runde.i++; tegnRunde(); return; }
+    const lukket = o.status === "faerdig";
+    if (!runde.valg) runde.valg = lukket ? (o.droppet ? "droppet" : "faerdig") : null;
+    const valg = runde.valg;
+    const knapper = lukket ? null : el("div", { class: "runde-valg", role: "group", "aria-label": "Hvordan går det?" },
+      [["ikke", "Ikke nået endnu", "s-ny"], ["igang", "I gang", "s-igang"], ["venter", "Venter på andre", "s-venter"], ["faerdig", "Færdig ✓", "s-faerdig"]]
+        .map(function (v) {
+          return el("button", { type: "button", class: "st-knap " + v[2], "aria-pressed": String(valg === v[0]),
+            onclick: function () { runde.valg = v[0]; tegnRunde(); const t = $("runde-tekst"); if (t) t.focus(); } },
+            el("span", { class: "prik" }), v[1]);
+        }));
+    const kraevTekst = valg === "faerdig" || valg === "droppet";
+    const ta = el("textarea", { class: "auto", id: "runde-tekst", rows: "2", maxlength: "500",
+      placeholder: kraevTekst ? "Fx: Hallen er booket 12/12" : "Fx: Har skrevet til kommunen – venter svar" });
+    const gem = el("button", { class: "knap", type: "button" }, "Gem og videre →");
+    const opd = function () { gem.disabled = !valg || (kraevTekst && !ta.value.trim()); ta.style.height = "auto"; ta.style.height = Math.max(ta.scrollHeight, 58) + "px"; };
+    ta.addEventListener("input", opd);
+    gem.addEventListener("click", function () {
+      const t = ta.value.trim();
+      let status = valg;
+      if (valg === "ikke") status = o.status === "faerdig" ? "ny" : o.status;   // status bliver, men de andre får nyt
+      send({ handling: "status", nr: o.nr, status: status, tekst: t }, "Gemt ✓ " + o.titel);
+      runde.gemt++;
+      runde.i++;
+      runde.valg = null;
+      tegnRunde();
+    });
+    const meta = [hvem(o).join(", ")];
+    if (o.deadline) meta.push("deadline " + kortDato(o.deadline));
+    if (!lukket) meta.push(statusNavn(o));
+    else meta.push((o.droppet ? "droppet " : "færdig ") + (o.lukket ? dm(o.lukket) : ""));
+    inner.replaceChildren.apply(inner, [hovedet,
+      el("p", { class: "runde-trin" }, (runde.i + 1) + " af " + runde.liste.length),
+      el("div", { class: "runde-kort" }, el("h3", null, o.helTitel), el("p", { class: "hjaelp", style: { margin: "0" } }, meta.join(" · "))),
+      knapper,
+      el("label", { class: "felt", for: "runde-tekst" }, el("span", null, kraevTekst ? (valg === "droppet" ? "Hvorfor droppet?" : "Hvad blev det til?") : "Kort status til de andre (valgfrit)"), ta),
+      el("div", { class: "handling" }, gem,
+        el("button", { class: "knap sekundaer", type: "button", onclick: function () { runde.i++; runde.valg = null; tegnRunde(); } }, "Spring over"))
+    ].filter(Boolean));
+    opd();
+  }
+
+  // ------------------------------------------------------------------ Til mødet
+  function senesteNyt(o, siden) {
+    const efter = o.log.filter(function (e) { return e.dato > siden && e.type !== "Tilføjet"; });
+    const medTekst = efter.filter(function (e) { return e.tekst; });
+    if (medTekst.length) { const e = medTekst[medTekst.length - 1]; return { tekst: e.datoTekst + " · " + e.af + ": " + e.tekst, slags: "" }; }
+    if (efter.length) { const e = efter[efter.length - 1]; return { tekst: e.datoTekst + " · " + e.af + ": " + (STATUS_TEKST[e.type] || e.type), slags: "svag" }; }
+    if (o.fraDato > siden) return { tekst: "🆕 " + (o.tilfoejetAf ? "Tilføjet af " + o.tilfoejetAf + " " + dm(o.oprettetDag) : "Ny siden sidst"), slags: "svag" };
+    if (!o.personer.length) return { tekst: "Ingen har taget den endnu", slags: "svag" };
+    return { tekst: "⚠️ Ingen status siden " + dm(siden), slags: "mangler" };
+  }
+  const STATUS_TEKST = { "I gang": "satte den i gang", "Venter": "venter på andre", "Next up": "næste i køen", "Ikke startet": "ikke nået endnu",
+    "Tog opgaven": "tog opgaven", "Rettet": "rettede opgaven", "Lagt tilbage til bestyrelsen": "lagde den tilbage til bestyrelsen" };
+  function moedeData(siden) {
+    const klaret = S.opgaver.filter(function (o) { return o.status === "faerdig" && o.lukket && o.lukket >= siden && !o.ny; })
+      .sort(function (a, b) { return da(hvem(a).join(), hvem(b).join()) || a.lukket - b.lukket; });
+    const aabne = S.opgaver.filter(function (o) { return o.status !== "faerdig"; }).sort(efterDeadline);
+    const navne = [];
+    for (const n of allePersoner()) navne.push(n);
+    for (const o of aabne.concat(klaret)) for (const p of o.personer) if (!navne.some(function (x) { return lav(x) === lav(p); })) navne.push(p);
+    const grupper = navne.map(function (n) { return { navn: n, liste: aabne.filter(function (o) { return egenPerson(o, n); }) }; })
+      .filter(function (g) { return g.liste.length; });
+    const pulje = aabne.filter(function (o) { return !o.personer.length; });
+    if (pulje.length) grupper.push({ navn: PULJE, liste: pulje });
+    const klar = navne.map(function (n) {
+      const mine = S.opgaver.filter(function (o) { return egenPerson(o, n) && (o.status !== "faerdig" || (o.lukket && o.lukket >= siden)); });
+      return { navn: n, antal: mine.length, mangler: mine.filter(function (o) { return manglerStatus(o, siden); }).length };
+    }).filter(function (k) { return k.antal; });
+    return { klaret: klaret, grupper: grupper, aabne: aabne, klar: klar };
+  }
+  function punkt(o, siden) {
+    const meta = [];
+    if (o.status === "faerdig") {
+      meta.push(hvem(o).join(", "), (o.droppet ? "droppet " : "færdig ") + (o.lukket ? dm(o.lukket) : ""));
+    } else {
+      meta.push(statusNavn(o));
+      if (o.deadline) meta.push(el("span", { class: dageTil(o.deadline) < 0 ? "over" : null }, "deadline " + kortDato(o.deadline) + (dageTil(o.deadline) < 0 ? " (over tid)" : "")));
+      else if (o.dlSlags === "moede") meta.push("deadline næste møde");
+    }
+    const metaEl = el("span", { class: "p-meta" });
+    meta.forEach(function (m, i) { if (i) metaEl.append(" · "); metaEl.append(m); });
+    let nyt;
+    if (o.status === "faerdig") {
+      nyt = o.resultat ? { tekst: (o.droppet ? "✖️ " : "✅ ") + o.resultat, slags: "" } : { tekst: "⚠️ Intet resultat skrevet endnu", slags: "mangler" };
+    } else nyt = senesteNyt(o, siden);
+    return el("button", { class: "punkt" + (o.ny || o.venter ? " gemmer" : ""), type: "button", onclick: function () { aabnOpgave(o.nr); } },
+      el("span", { class: "p-titel" }, o.helTitel), metaEl, el("span", { class: "p-nyt " + nyt.slags }, nyt.tekst));
+  }
+  function tegnMoedeVisning() {
+    const v = $("v-moede");
+    v.replaceChildren();
+    const n = naesteMoede();
+    const siden = sidenSidst();
+    const data = moedeData(siden);
+    const sidenInp = el("input", { type: "date", value: iso(siden), "aria-label": "Siden", onchange: function (ev) {
+      const d = isoTilDato(ev.target.value);
+      S.moedeSiden = d && sidsteMoede() && d.getTime() === sidsteMoede().getTime() ? null : d;
+      vis();
+    } });
+    const mine = S.mig ? rundeListe() : [];
+    v.append(el("div", { class: "mv-hoved" },
+      el("div", null,
+        el("h2", null, n ? "Opfølgning til mødet " + moedeNavn(n) : "Opfølgning til næste møde"),
+        el("p", { class: "mv-sub" }, "Det, der er sket siden ", sidsteMoede() && !S.moedeSiden ? "mødet " : "", sidenInp)),
+      el("div", { class: "handling" },
+        mine.length && kanRette() ? el("button", { class: "knap", type: "button", onclick: startRunde }, "Giv status på dine (" + mine.length + ")") : null,
+        el("button", { class: "knap sekundaer", type: "button", onclick: function (ev) { kopierReferat(ev, siden); } }, "📋 Kopiér til referatet"))));
+    if (data.klar.length) {
+      v.append(el("div", { class: "klar", "aria-label": "Status fra bestyrelsen" }, data.klar.map(function (k) {
+        return k.mangler ? el("span", { class: "chip mangler", title: k.mangler + " opgaver mangler en status" }, k.navn + " · " + k.mangler + " mangler")
+          : el("span", { class: "chip ok" }, k.navn + " ✓");
+      })));
+    }
+    v.append(el("section", { class: "mv-afsnit" },
+      el("h3", null, "✅ Klaret siden " + dm(siden), el("span", { class: "antal" }, data.klaret.length)),
+      data.klaret.length ? el("div", { class: "punkter" }, data.klaret.map(function (o) { return punkt(o, siden); }))
+        : el("div", { class: "punkter" }, el("p", { class: "tom-afsnit" }, "Ingen opgaver er meldt færdige siden " + dm(siden) + "."))));
+    const aabneEl = el("section", { class: "mv-afsnit" }, el("h3", null, "⏳ Åbne opgaver", el("span", { class: "antal" }, data.aabne.length)));
+    if (!data.grupper.length) aabneEl.append(el("div", { class: "punkter" }, el("p", { class: "tom-afsnit" }, "Ingen åbne opgaver 🎉")));
+    for (const g of data.grupper) {
+      aabneEl.append(el("p", { class: "mv-gruppe" }, g.navn === PULJE ? "🙋 Bestyrelsen – kan alle tage" : g.navn),
+        el("div", { class: "punkter" }, g.liste.map(function (o) { return punkt(o, siden); })));
+    }
+    v.append(aabneEl);
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function referat(siden) {
+    const data = moedeData(siden);
+    const n = naesteMoede();
+    const overskrift = "Opfølgning på opgaverne siden " + (sidsteMoede() && !S.moedeSiden ? "mødet " : "") + fuldDato(siden) +
+      (n ? " (til mødet " + fuldDato(n) + ")" : " (pr. " + fuldDato(idag()) + ")");
+    const t = [overskrift, "", "Klaret:"];
+    const tbl = 'border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;width:100%"';
+    let h = "<p><b>" + esc(overskrift) + "</b></p><p><b>Klaret</b></p>";
+    if (!data.klaret.length) { t.push("• Ingen"); h += "<p>Ingen.</p>"; }
+    else {
+      h += "<table " + tbl + "><tr><th align=\"left\">Opgave</th><th align=\"left\">Ansvarlig</th><th align=\"left\">Resultat</th></tr>";
+      for (const o of data.klaret) {
+        const res = o.resultat ? (o.droppet ? "Droppet: " : "") + o.resultat : (o.droppet ? "Droppet" : "Intet resultat skrevet");
+        t.push("• " + o.helTitel + " (" + hvem(o).join(", ") + ") – " + res);
+        h += "<tr><td>" + esc(o.helTitel) + "</td><td>" + esc(hvem(o).join(", ")) + "</td><td>" + esc(res) + "</td></tr>";
+      }
+      h += "</table>";
+    }
+    t.push("", "Åbne:");
+    h += "<p><b>Åbne opgaver</b></p>";
+    if (!data.aabne.length) { t.push("• Ingen"); h += "<p>Ingen.</p>"; }
+    else {
+      h += "<table " + tbl + "><tr><th align=\"left\">Opgave</th><th align=\"left\">Ansvarlig</th><th align=\"left\">Status</th><th align=\"left\">Deadline</th><th align=\"left\">Seneste nyt</th></tr>";
+      for (const g of data.grupper) for (const o of g.liste) {
+        const dl = o.deadline ? kortDato(o.deadline) + (dageTil(o.deadline) < 0 ? " (over tid)" : "") : o.dlSlags === "moede" ? "næste møde" : o.dlTekst || "–";
+        const nyt = senesteNyt(o, siden).tekst.replace(/^⚠️ /, "").replace(/^🆕 /, "Ny siden sidst – ");
+        t.push("• " + o.helTitel + " (" + hvem(o).join(", ") + ") – " + statusNavn(o) + (dl !== "–" ? " – " + dl : "") + " – " + nyt);
+        h += "<tr><td>" + esc(o.helTitel) + "</td><td>" + esc(hvem(o).join(", ")) + "</td><td>" + esc(statusNavn(o)) + "</td><td>" +
+          esc(dl) + "</td><td>" + esc(nyt) + "</td></tr>";
+      }
+      h += "</table>";
+    }
+    return { tekst: t.join("\n"), html: h };
+  }
+  async function kopierReferat(ev, siden) {
+    const k = ev.currentTarget, r = referat(siden);
+    const ok = await kopier(r.tekst, r.html);
+    const foer = k.textContent;
+    k.textContent = ok ? "Kopieret ✓ – sæt ind i referatet" : "Kunne ikke kopiere";
+    setTimeout(function () { k.textContent = foer; }, 2500);
+  }
+
+  // ------------------------------------------------------------------ valg og links
   function vaelgPerson(navn) {
     S.person = navn;
     if (S.kilde !== "eksempel") skriv("person", navn);
     saetAdresse("person", navn);
     vis();
   }
+  function vaelgVisning(v) {
+    S.visning = v === "moede" ? "moede" : "opgaver";
+    saetAdresse("visning", S.visning === "moede" ? "moede" : null);
+    vis();
+    window.scrollTo(0, 0);
+  }
   function sideAdresse() {
     let base = location.origin + location.pathname;
     if (!/^https?:/.test(base)) base = "https://brebnhi.github.io/bestyrelse/";
     return base;
   }
-  function personLink(navn) { return sideAdresse() + "?person=" + encodeURIComponent(navn); }
   async function kopierPersonLink(ev) {
-    const k = ev.currentTarget, navn = S.person, link = personLink(navn);
+    const k = ev.currentTarget, navn = S.person, link = sideAdresse() + "?person=" + encodeURIComponent(navn);
     const ok = await kopier(link);
     k.textContent = ok ? "Kopieret ✓" : link;
     setTimeout(function () { k.textContent = "🔗 Kopiér " + ejefald(navn) + " link"; }, ok ? 2200 : 8000);
@@ -1220,8 +2333,6 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     k.textContent = ok ? "Kopieret ✓" : link;
     setTimeout(function () { k.textContent = "🔗 Kopiér link"; }, ok ? 2200 : 8000);
   }
-
-  // ------------------------------------------------------------------ udklipsholder
   async function kopier(tekst, html) {
     try {
       if (html && window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
@@ -1245,258 +2356,209 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;display:flex;flex-wra
     return ok;
   }
 
-  // ------------------------------------------------------------------ referat
-  function referatData(siden) {
-    const aabne = S.opgaver.filter(function (o) { return o.status !== "faerdig"; });
-    const faerdige = S.opgaver.filter(function (o) { return o.status === "faerdig" && o.lukket && o.lukket >= siden; })
-      .sort(function (a, b) { return a.lukket - b.lukket; });
-    const navne = [];
-    for (const o of aabne) for (const p of o.personer) if (!navne.some(function (x) { return lav(x) === lav(p); })) navne.push(p);
-    navne.sort(da);
-    const grupper = navne.map(function (n) { return { navn: n, liste: aabne.filter(function (o) { return egenPerson(o, n); }).sort(efterDeadline) }; });
-    const alle = aabne.filter(function (o) { return o.alle; }).sort(efterDeadline);
-    if (alle.length) grupper.push({ navn: "Hele bestyrelsen", liste: alle });
-    const uden = aabne.filter(function (o) { return !o.personer.length && !o.alle; }).sort(efterDeadline);
-    if (uden.length) grupper.push({ navn: "Uden ansvarlig", liste: uden });
-    return { grupper: grupper, faerdige: faerdige };
+  // ------------------------------------------------------------------ på telefonen (hjemmeskærm)
+  function erApp() { return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true; }
+  function platform() {
+    const ua = navigator.userAgent || "";
+    if (/iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1)) return "ios";
+    if (/android/i.test(ua)) return "android";
+    return "andet";
   }
-  function referatLinje(o) {
-    let s = o.titel + " – " + STATUS[o.status].navn;
-    if (o.deadline) s += " – deadline " + kortDato(o.deadline) + (dageTil(o.deadline) < 0 ? " (over tid)" : "");
-    return s;
-  }
-  function faerdigLinje(o) {
-    const hvem_ = o.personer.concat(o.alle ? ["hele bestyrelsen"] : []);
-    return o.titel + (hvem_.length ? " (" + hvem_.join(", ") + ")" : "") + (o.droppet ? " – droppet" : "");
-  }
-  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
-  function referat(siden) {
-    const d = referatData(siden);
-    const overskrift = "Opgavestatus pr. " + fuldDato(new Date());
-    const fSiden = "Færdige siden " + fuldDato(siden);
-    const t = [overskrift];
-    let h = "<p><b>" + esc(overskrift) + "</b></p>";
-    if (!d.grupper.length) { t.push("", "Ingen åbne opgaver."); h += "<p>Ingen åbne opgaver.</p>"; }
-    for (const g of d.grupper) {
-      t.push("", g.navn);
-      h += "<p><b>" + esc(g.navn) + "</b></p><ul>";
-      for (const o of g.liste) { t.push("• " + referatLinje(o)); h += "<li>" + esc(referatLinje(o)) + "</li>"; }
-      h += "</ul>";
+  function tegnHjem() {
+    const b = $("hjem-indhold");
+    b.replaceChildren();
+    if (erApp()) {
+      b.append(el("p", { class: "hjaelp" }, "Du bruger allerede siden fra hjemmeskærmen 👍 Tryk på ＋ for at tilføje en opgave."));
+    } else if (S.installer) {
+      b.append(el("p", { class: "hjaelp" }, "Så ligger den som en app, og du kan tilføje opgaver lige så hurtigt som i en notesblok."),
+        el("div", { class: "handling" }, el("button", { class: "knap", type: "button", onclick: async function () {
+          const e = S.installer; S.installer = null;
+          e.prompt();
+          try { await e.userChoice; } catch (x) { /* ligegyldigt */ }
+          tegnHjem();
+        } }, "📲 Installér på telefonen")));
+    } else {
+      const p = platform();
+      b.append(el("p", { class: "hjaelp" }, "Så ligger den som en app, og du kan tilføje opgaver lige så hurtigt som i en notesblok."));
+      b.append(el("ol", { class: "trin" }, p === "ios" ? [
+        el("li", null, "Åbn siden i ", el("b", null, "Safari"), "."),
+        el("li", null, "Tryk på ", el("b", null, "Del-knappen"), " (firkanten med pilen op)."),
+        el("li", null, "Vælg ", el("b", null, "Føj til hjemmeskærm"), " og tryk ", el("b", null, "Tilføj"), ".")
+      ] : p === "android" ? [
+        el("li", null, "Åbn siden i ", el("b", null, "Chrome"), "."),
+        el("li", null, "Tryk på ", el("b", null, "⋮"), " øverst til højre."),
+        el("li", null, "Vælg ", el("b", null, "Installer app"), " eller ", el("b", null, "Føj til startskærm"), ".")
+      ] : [
+        el("li", null, el("b", null, "iPhone:"), " Safari → Del-knappen → Føj til hjemmeskærm."),
+        el("li", null, el("b", null, "Android:"), " Chrome → ⋮ → Installer app.")
+      ]));
     }
-    t.push("", fSiden + ":");
-    h += "<p><b>" + esc(fSiden) + "</b></p><ul>";
-    if (!d.faerdige.length) { t.push("• Ingen"); h += "<li>Ingen</li>"; }
-    for (const o of d.faerdige) { t.push("• " + faerdigLinje(o)); h += "<li>" + esc(faerdigLinje(o)) + "</li>"; }
-    h += "</ul>";
-    return { tekst: t.join("\n"), html: h };
-  }
-  function referatSiden() {
-    const v = $("ref-siden").value;
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
-    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : midnat(new Date(Date.now() - FAERDIG_DAGE * DAG));
-  }
-  function tegnReferat() { $("ref-tekst").value = referat(referatSiden()).tekst; }
-  function isoDato(d) { return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
-
-  // ------------------------------------------------------------------ ny opgave
-  const ny = { valgte: [] };
-  function kendtePersoner() {
-    const navne = allePersoner();
-    if (MEDLEMMER.length) return navne;          // kun bestyrelsen kan få opgaver
-    for (const n of S.labelPersoner) if (!navne.some(function (x) { return lav(x) === lav(n); })) navne.push(n);
-    return navne.sort(da);
-  }
-  function tegnNyPersoner() {
-    const boks = $("ny-personer");
-    const navne = kendtePersoner();
-    boks.replaceChildren();
-    if (!navne.length) {
-      boks.append(el("span", { class: "hjaelp", style: { margin: "0" } },
-        "Ingen personer endnu – opret labels som @Søren i GitHub (se README)."));
+    if (S.mig) {
+      b.append(el("p", { class: "hjaelp" }, "Første gang du åbner den fra hjemmeskærmen, vælger du dit navn igen."));
     }
-    for (const n of navne) {
-      const valgt = ny.valgte.some(function (x) { return lav(x) === lav(n); });
-      boks.append(el("button", { type: "button", class: "vaelg", "aria-pressed": String(valgt), style: { "--h": farve(n) },
-        onclick: function () {
-          ny.valgte = valgt ? ny.valgte.filter(function (x) { return lav(x) !== lav(n); }) : ny.valgte.concat([n]);
-          tegnNyPersoner();
-        } }, el("span", { class: "prik" }), n));
-    }
-    tegnNyForhaand();
-  }
-  function nyTitel() {
-    const t = $("ny-titel").value.trim().replace(/\s+/g, " ");
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec($("ny-dl").value);
-    if (!t || !m) return t;
-    const a = +m[1], mm = +m[2], d = +m[3];
-    const udenAar = lavDato(d, mm, null, new Date());
-    return t + " (" + d + "/" + mm + (udenAar && udenAar.getFullYear() === a ? "" : "-" + a) + ")";
-  }
-  function nyLabels() {
-    const labels = ny.valgte.map(function (n) { return S.labelNavn["person:" + lav(n)] || "@" + n; });
-    const st = $("ny-status").value;
-    if (st !== "ny") labels.push(S.labelNavn["status:" + st] || STATUS[st].navn);
-    return labels;
-  }
-  function nyUrl() {
-    const q = new URLSearchParams();
-    q.set("title", nyTitel());
-    const labels = nyLabels();
-    if (labels.length) q.set("labels", labels.join(","));
-    const noter = $("ny-noter").value.trim();
-    if (noter) q.set("body", noter);
-    return GH + "/issues/new?" + q.toString();
-  }
-  function tegnNyForhaand() {
-    const titel = nyTitel();
-    $("ny-opret").disabled = !titel;
-    const p = $("ny-forhaand");
-    p.replaceChildren();
-    if (!titel) { p.append("Titlen i GitHub vises her, når du skriver en opgave."); return; }
-    p.append("Titel i GitHub: ", el("code", null, titel));
-    const labels = nyLabels();
-    if (labels.length) {
-      p.append(" · Labels: ");
-      labels.forEach(function (l, i) { if (i) p.append(" "); p.append(el("code", null, l)); });
-    }
-  }
-  async function hentLabels() {
-    if (S.labels || S.kilde === "eksempel") return;
-    try {
-      const liste = await hentSider(API + "/labels?per_page=100");
-      S.labels = liste;
-      for (const l of liste) {
-        const p = personFraLabel(l.name);
-        if (p) { S.labelNavn["person:" + lav(p)] = l.name; S.labelPersoner.push(p); continue; }
-        const st = statusFraLabel(l.name);
-        if (st) S.labelNavn["status:" + st] = l.name;
-      }
-    } catch (e) { S.labels = []; }
-    if ($("ny").open) tegnNyPersoner();
+    b.append(el("div", { class: "handling" }, el("button", { class: "lille-knap", type: "button", onclick: async function (ev) {
+      const k = ev.currentTarget;
+      const ok = await kopier(sideAdresse());
+      k.textContent = ok ? "Kopieret ✓" : sideAdresse();
+      setTimeout(function () { k.textContent = "🔗 Kopiér linket til de andre"; }, 2200);
+    } }, "🔗 Kopiér linket til de andre")));
   }
 
   // ------------------------------------------------------------------ eksempel
   function eksempelData() {
-    const dag = function (n) { const x = midnat(new Date()); x.setDate(x.getDate() + n); return x; };
+    const dag = function (n) { return plusDage(idag(), n); };
+    const tid = function (n) { return dag(n).toISOString(); };
     const kort = function (n) { const x = dag(n); return " (" + x.getDate() + "/" + (x.getMonth() + 1) + ")"; };
+    const ld = function (n) { return fuldDato(dag(n)); };
+    const moede = -26;
     let nr = 41;
     const mk = function (titel, dl, labels, ekstra) {
-      return Object.assign({ number: nr--, title: titel + (dl == null ? "" : kort(dl)), labels: labels, state: "open",
-        created_at: dag(-10).toISOString(), html_url: null, body: "Oprettet af robotten fra #1 (Opgaver fra mødet " +
-        dag(-10).getDate() + "/" + (dag(-10).getMonth() + 1) + ").", author_association: "OWNER" }, ekstra || {});
+      return Object.assign({ number: nr--, title: titel + (dl == null ? "" : typeof dl === "string" ? " (" + dl + ")" : kort(dl)),
+        labels: labels, state: "open", created_at: tid(moede), updated_at: tid(-1), html_url: null,
+        body: "Oprettet af robotten fra #1 (Opgaver fra mødet " + dag(moede).getDate() + "/" + (dag(moede).getMonth() + 1) + ").",
+        author_association: "OWNER" }, ekstra || {});
     };
-    return [
+    const log = function (linjer) { return "\n\n" + LOG_MAERKE + "\n" + linjer.join("\n"); };
+    const mkSide = function (titel, dl, labels, af, n, ekstra) {
+      return mk(titel, dl, labels, Object.assign({ created_at: tid(n), body: LOG_MAERKE + "\n- " + ld(n) + " · " + af + " · Tilføjet" }, ekstra || {}));
+    };
+    const ex = [
+      { number: 50, title: MOEDE_TITEL, labels: [MOEDE_LABEL], state: "open", created_at: tid(-60), author_association: "OWNER",
+        body: MOEDE_INTRO + "\n\n- " + ld(moede) + " kl. 17\n- " + ld(3) + " kl. 17\n" },
       mk("Book hal til opstartsfesten", 5, ["@Søren", "Next up"]),
-      mk("Svar kommunen om ekstra haltider", -2, ["@Mette", "Venter"],
-        { body: "Afventer svar fra idrætskonsulenten.\nReferat: https://docs.google.com/document/d/eksempel" }),
-      mk("Opdater hjemmesiden med nye træningstider", 1, ["@Line", "I gang"]),
-      mk("Søg fondsmidler til nye bolde hos Spar Nord Fonden og Aalborg Kommunes foreningspulje", 12, ["@Jonas", "I gang"]),
-      mk("Ring til sponsorerne om forlængelse", 9, ["@Søren", "@Jonas", "Next up"]),
-      mk("Plan for julestævnet", null, ["@Mette"]),
-      mk("Tjek dommerkurser for trænerne", 30, ["@Alle"]),
-      mk("Bestil bolde til ungdomsholdene", 3, ["@Line", "Next up"]),
-      mk("Send velkomstmail til nye medlemmer", null, ["@Line"], { state: "closed", state_reason: "completed", closed_at: dag(-3).toISOString() }),
-      mk("Indkald til bestyrelsesmøde", null, ["@Søren"], { state: "closed", state_reason: "completed", closed_at: dag(-9).toISOString() }),
-      mk("Undersøg ny betalingsløsning", null, ["@Jonas"], { state: "closed", state_reason: "not_planned", closed_at: dag(-20).toISOString() })
+      mk("Svar kommunen om ekstra haltider", -2, ["@Marcel", "Venter"],
+        { body: "Oprettet af robotten fra #1 (Opgaver fra mødet " + dm(dag(moede)) + ")." + log(["- " + ld(-9) + " · Marcel · Venter: Afventer svar fra idrætskonsulenten"]) }),
+      mk("Opdater hjemmesiden med nye træningstider", 1, ["@Sonja", "I gang"]),
+      mk("Søg fondsmidler til nye bolde hos Spar Nord Fonden og Aalborg Kommunes foreningspulje", 12, ["@Heidi", "I gang"],
+        { body: "Oprettet af robotten fra #1 (Opgaver fra mødet " + dm(dag(moede)) + ")." + log(["- " + ld(-4) + " · Heidi · I gang: Ansøgningen til Spar Nord er sendt, kommunen næste"]) }),
+      mk("Ring til sponsorerne om forlængelse", "næste møde", ["@Søren", "@Heidi", "Next up"]),
+      mkSide("Find en SoMe-studerende til Instagram", "næste møde", [PULJE], "Søren", -6),
+      mk("Tjek dommerkurser for trænerne", 30, [PULJE]),
+      mkSide("Bestil bolde til ungdomsholdene", 3, ["@Anna"], "Anna", -3),
+      mk("Plan for julestævnet", null, ["@Ida"]),
+      mk("Send velkomstmail til nye medlemmer", null, ["@Emma"], { state: "closed", state_reason: "completed", closed_at: tid(-3),
+        body: "Oprettet af robotten fra #1 (Opgaver fra mødet " + dm(dag(moede)) + ")." + log(["- " + ld(-3) + " · Emma · Færdig: Sendt til alle 38 nye – skabelonen ligger i Drev"]) }),
+      mk("Indkald til generalforsamling", null, ["@Søren"], { state: "closed", state_reason: "completed", closed_at: tid(-9) }),
+      mk("Undersøg ny betalingsløsning", null, ["@Mikkel"], { state: "closed", state_reason: "not_planned", closed_at: tid(-12),
+        body: "Oprettet af robotten fra #1 (Opgaver fra mødet " + dm(dag(moede)) + ")." + log(["- " + ld(-12) + " · Mikkel · Droppet: Vi bliver hos Holdsport – for dyrt at skifte"]) })
     ];
+    return ex;
+  }
+  function eksempelGem(post) {        // i eksemplet gemmes ændringen direkte i dataene
+    const d = post.d, dato = fuldDato(idag());
+    if (d.handling === "opret") {
+      const ny = bygNy(d, { dato: dato, ref: idag() });
+      S.raa.push(Object.assign(ny, { number: 100 + S.raa.length, created_at: new Date().toISOString(), author_association: "OWNER" }));
+    } else if (d.handling === "moede") {
+      const m = S.raa.filter(erMoedeIssue)[0];
+      if (m) m.body = skrivMoeder(opdaterMoeder(laesMoeder(m.body, idag()), isoTilDato(d.dato), isoTilDato(d.erstat), d.tid, idag()));
+    } else {
+      const i = S.raa.filter(function (x) { return x.number === d.nr; })[0];
+      if (!i) return;
+      try {
+        const efter = anvend(i, d, { dato: dato, ref: midnat(new Date(i.created_at)) });
+        Object.assign(i, efter, { closed_at: efter.state === "closed" ? (i.closed_at || new Date().toISOString()) : null });
+      } catch (e) { visBesked(String(e), true); }
+    }
+    afled();
   }
   function visEksempel() {
-    S.forEksempel = { opgaver: S.opgaver, kilde: S.kilde, hentet: S.hentet, person: S.person };
-    S.opgaver = eksempelData().map(normaliser);
+    S.forEksempel = { raa: S.raa, kilde: S.kilde, hentet: S.hentet, person: S.person, mig: S.mig, udbakke: S.udbakke, nyere: S.nyere };
+    S.raa = eksempelData();
+    S.udbakke = [];
+    S.nyere = {};
     S.kilde = "eksempel";
     S.person = null;
+    S.mig = "Søren";
+    afled();
     visBanner("info", "Eksempel – ikke rigtige opgaver",
-      "Sådan ser siden ud, når der er oprettet opgaver i GitHub. Vælg et navn, og tryk på en opgave.",
+      "Sådan ser siden ud med opgaver. Prøv at tilføje, tage eller afslutte en – intet bliver gemt.",
       el("button", { class: "lille-knap", type: "button", onclick: lukEksempel }, "Luk eksempel"));
     vis();
   }
   function lukEksempel() {
     const f = S.forEksempel || {};
-    S.opgaver = f.opgaver || [];
-    S.kilde = f.kilde || null;
-    S.hentet = f.hentet || null;
-    S.person = f.person || null;
+    Object.assign(S, { raa: f.raa || [], kilde: f.kilde || null, hentet: f.hentet || null, person: f.person || null,
+      mig: f.mig || null, udbakke: f.udbakke || [], nyere: f.nyere || {} });
     saetAdresse("eksempel", null);
     skjulBanner();
-    if (S.kilde === "github") vis(); else opdater(true);
+    afled();
+    if (S.kilde === "github" || S.kilde === "mellemmand") vis(); else opdater(true);
   }
 
   // ------------------------------------------------------------------ start
   function start() {
-    $("referat").addEventListener("toggle", function () { if ($("referat").open) tegnReferat(); });
-    $("ref-siden").value = isoDato(midnat(new Date(Date.now() - FAERDIG_DAGE * DAG)));
-    $("ref-siden").addEventListener("change", tegnReferat);
-    $("ref-kopier").addEventListener("click", async function () {
-      const r = referat(referatSiden());
-      const ok = await kopier(r.tekst, r.html);
-      const s = $("ref-ok");
-      s.textContent = ok ? "Kopieret ✓" : "Markér teksten og kopiér selv";
-      s.hidden = false;
-      setTimeout(function () { s.hidden = true; }, 2500);
+    $("ny-form").addEventListener("submit", gemNy);
+    $("ny-dato").addEventListener("change", function () { ny.dato = $("ny-dato").value; ny.naar = "dato"; tegnNyValg(); });
+    $("ny-top").addEventListener("click", function () { aabnNy(); });
+    $("fab").addEventListener("click", function () { aabnNy(); });
+    $("moede-form").addEventListener("submit", gemMoede);
+    $("moede-aflys").addEventListener("click", function () {
+      const n = naesteMoede();
+      if (!n) return;
+      send({ handling: "moede", erstat: iso(n) }, "Mødet " + langDato(n) + " er fjernet");
+      lukArk("ark-moede");
     });
+    for (const k of document.querySelectorAll("[data-luk]")) k.addEventListener("click", function () { lukArk(k.dataset.luk); });
+    for (const id of ["ark-ny", "detalje", "ark-hvem", "ark-moede", "ark-runde"]) {
+      const d = $(id);
+      d.addEventListener("click", function (ev) { if (ev.target === d) lukArk(id); });
+    }
+    $("detalje").addEventListener("close", function () { S.aaben = null; S.udfold = null; saetAdresse("opgave", null); });
+    $("ark-hvem").addEventListener("close", function () { efterHvem = null; });
+    for (const k of document.querySelectorAll(".faner [data-visning]")) k.addEventListener("click", function () { vaelgVisning(k.dataset.visning); });
+    for (const k of $("sortering").querySelectorAll("button[data-sort]")) k.addEventListener("click", function () { saetSort(k.dataset.sort); });
+    $("hjem").addEventListener("toggle", function () { if ($("hjem").open) tegnHjem(); });
     // "📥 Opgaver fra mødet …": robotten laver én opgave pr. række i den indsatte tabel
     $("import-link").href = GH + "/issues/new?" + new URLSearchParams({
-      title: "📥 Opgaver fra mødet ",
-      body: "Næste møde: \n\n<!-- Indsæt tabellen fra referatet herunder med Ctrl+V (Opgave | Person | Deadline) -->\n\n"
+      title: "📥 Opgaver fra mødet " + idag().getDate() + "/" + (idag().getMonth() + 1),
+      body: "Næste møde: \n\n<!-- Indsæt tabellen fra referatet herunder med Ctrl+V (Opgave | Person | Deadline). " +
+        "Deadline må gerne være ord: ASAP, inden næste møde, om 14 dage, uge 44, fredag … -->\n\n"
     }).toString();
-    $("ny").addEventListener("toggle", function () { if ($("ny").open) { tegnNyPersoner(); hentLabels(); } });
-    for (const id of ["ny-titel", "ny-dl", "ny-status"]) {
-      $(id).addEventListener("input", tegnNyForhaand);
-      $(id).addEventListener("change", tegnNyForhaand);
-    }
-    $("ny-opret").addEventListener("click", function () {
-      if (!nyTitel()) return;
-      window.open(nyUrl(), "_blank", "noopener");
+
+    // Android: "installér"-knappen
+    window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); S.installer = e; if ($("hjem").open) tegnHjem(); });
+    // Prøv at sende igen, når der er net
+    window.addEventListener("online", function () { toemUdbakke(); });
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState !== "visible" || S.kilde === "eksempel") return;
+      if (S.udbakke.length) toemUdbakke();
+      if (Date.now() - S.sidstForsoegt > 3 * 60 * 1000) opdater(false);
     });
 
-    // Opgaven åbnet: luk med Esc, krydset eller et klik udenfor
-    const d = $("detalje");
-    d.addEventListener("click", function (ev) { if (ev.target === d) lukDetalje(); });
-    d.addEventListener("close", function () { S.aaben = null; saetAdresse("opgave", null); });
-
     const q = new URLSearchParams(location.search);
+    S.mig = kendtNavn(laes("mig") || "") || laes("mig") || null;
     if (q.has("person")) {
       S.person = (q.get("person") || "").trim() || null;
       skriv("person", S.person);
+      // Et personligt link fortæller, hvem man er – men kun hvis telefonen ikke allerede ved det
+      if (!S.mig && S.person && (kendtNavn(S.person) || !MEDLEMMER.length)) { S.mig = kendtNavn(S.person) || S.person; skriv("mig", S.mig); }
     } else {
       S.person = laes("person") || null;
     }
-    const startOpgave = parseInt(q.get("opgave"), 10);
     const qs = q.get("sort"), gemtSort = laes("sortering");
     S.sort = SORTERINGER.indexOf(qs) >= 0 ? qs : SORTERINGER.indexOf(gemtSort) >= 0 ? gemtSort : "deadline";
-    for (const k of $("sortering").querySelectorAll("button[data-sort]")) {
-      k.addEventListener("click", function () { saetSort(k.dataset.sort); });
-    }
+    S.visning = q.get("visning") === "moede" ? "moede" : "opgaver";
+    const startOpgave = q.get("opgave");
 
-    // Hent igen, når siden kommer frem efter at have ligget i baggrunden et stykke tid
-    document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible" && S.kilde !== "eksempel" &&
-          Date.now() - S.sidstForsoegt > 3 * 60 * 1000) opdater(false);
-    });
-
-    // Vis sidst hentede opgaver med det samme, og hent friske bagefter
-    try { S.afventer = JSON.parse(laes("afventer") || "{}") || {}; } catch (e) { S.afventer = {}; }
-    if (!MELLEMMAND) {
-      $("sub").textContent = "Vælg dit navn for at se dine opgaver. Tryk på en opgave for at se det hele.";
-    } else {
-      $("sub").textContent = "Vælg dit navn for at se dine opgaver. Tryk på en opgave for at se det hele og " +
-        "sætte den i gang eller hakke den af som færdig.";
-    }
-    const c = laesCache();
-    if (c) {
-      S.opgaver = c.issues.filter(erOpgave).map(normaliser);
-      anvendAfventende();
-      S.kilde = "cache";
-      S.hentet = new Date(c.tid);
-    }
+    S.udbakke = laesJson("udbakke", []);
+    S.nyere = laesJson("nyere", {});
+    const c = laesJson("cache2", null);
+    if (c && Array.isArray(c.issues)) { S.raa = c.issues; S.kilde = "cache"; S.hentet = new Date(c.tid); }
     if (q.has("eksempel")) { visEksempel(); return; }
-    if (S.opgaver.length) {
-      vis();
-      if (startOpgave && find(startOpgave)) aabnOpgave(startOpgave);
-    }
+    afled();
+    vis();
+    if (startOpgave && find(startOpgave)) aabnOpgave(startOpgave);
+    if (q.has("ny") && kanRette()) { saetAdresse("ny", null); aabnNy(); }
+    else if (erApp() && !S.mig && kanRette() && MEDLEMMER.length) { efterHvem = null; tegnHvem(); aabnArk("ark-hvem"); }
     opdater(false).then(function () {
-      if (startOpgave && S.aaben == null && find(startOpgave) && !$("detalje").open) aabnOpgave(startOpgave);
+      if (startOpgave && S.aaben == null && find(startOpgave) && !$("detalje").open && !$("ark-ny").open) aabnOpgave(startOpgave);
     });
+
+    // Så siden kan lægges på hjemmeskærmen og åbne uden net
+    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+      navigator.serviceWorker.register("sw.js").catch(function () { /* siden virker også uden */ });
+    }
   }
 
   start();

@@ -1,0 +1,38 @@
+name: Bestyrelsens robot
+
+# Starter robot.py, når du opretter, retter eller labeler et issue i repoet Brebnhi/bestyrelse – og når
+# config.js eller robot.py bliver opdateret (så rydder robotten op, laver labels og samler mødedatoerne).
+# Mellemmanden (Google Apps Script) ændrer opgaverne med din nøgle, så de ændringer tæller som dine.
+on:
+  issues:
+    types: [opened, edited, reopened, labeled]
+  push:
+    branches: [main]
+    paths: [config.js, robot.py]
+  workflow_dispatch:            # Run workflow: rydder op og laver labels, så de altid findes
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  robot:
+    # Kun repoets ejer og samarbejdspartnere kan sætte robotten i gang – ikke fremmede,
+    # der opretter et issue i det offentlige repo.
+    if: >-
+      github.event_name != 'issues' ||
+      github.actor == github.repository_owner ||
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Kør robotten
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIDE: https://brebnhi.github.io/bestyrelse/
+        run: python robot.py

@@ -1,0 +1,30 @@
+{
+  "name": "Bestyrelsens opgaver · Aalborg Volley",
+  "short_name": "Bestyrelsen",
+  "description": "Bestyrelsens opgaver i Aalborg Volley – tilføj, tag og følg op.",
+  "lang": "da",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f7f9",
+  "theme_color": "#f6f7f9",
+  "icons": [
+    { "src": "ikoner/ikon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "ikoner/ikon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "ikoner/ikon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tilføj opgave",
+      "short_name": "Tilføj",
+      "url": "./?ny=1",
+      "icons": [{ "src": "ikoner/ikon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Til mødet",
+      "url": "./?visning=moede",
+      "icons": [{ "src": "ikoner/ikon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
